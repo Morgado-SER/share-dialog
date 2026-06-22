@@ -6,7 +6,7 @@
       :alt="name"
       class="avatar-item__photo"
     />
-    <IconUser      v-else-if="type === 'User'"  class="avatar-item__icon" />
+    <IconUserFull  v-else-if="type === 'User'"  class="avatar-item__icon" />
     <IconGroup     v-else-if="type === 'Group'" class="avatar-item__icon" />
     <IconUnit      v-else-if="type === 'Unit'"  class="avatar-item__icon" />
     <IconRole      v-else-if="type === 'Role'"  class="avatar-item__icon" />
@@ -14,10 +14,10 @@
 </template>
 
 <script setup>
-import IconUser  from './icons/IconUser.vue'
-import IconGroup from './icons/IconGroup.vue'
-import IconUnit  from './icons/IconUnit.vue'
-import IconRole  from './icons/IconRole.vue'
+import IconUserFull from './icons/IconUserFull.vue'
+import IconGroup    from './icons/IconGroup.vue'
+import IconUnit     from './icons/IconUnit.vue'
+import IconRole     from './icons/IconRole.vue'
 
 defineProps({
   /** Which variant to render */

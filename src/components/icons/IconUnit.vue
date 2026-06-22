@@ -1,11 +1,5 @@
 <template>
   <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path d="M5.25 23.25H22.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M6.75 23.25V7.25C6.75 6.42157 7.42157 5.75 8.25 5.75H19.75C20.5784 5.75 21.25 6.42157 21.25 7.25V23.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M10.75 9.75H13.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M14.75 9.75H17.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M10.75 13.25H13.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M14.75 13.25H17.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M11.5 23.25V18.75C11.5 18.3358 11.8358 18 12.25 18H15.75C16.1642 18 16.5 18.3358 16.5 18.75V23.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M9.04199 9.07064H10.792M9.04199 12.5706H10.792M17.2087 16.0706H18.9587M17.2087 12.5706H18.9587M14.292 22.4577V6.70768C14.292 6.06335 13.7697 5.54102 13.1253 5.54102H6.70866C6.06433 5.54102 5.54199 6.06335 5.54199 6.70768V21.291C5.54199 21.9353 6.06433 22.4577 6.70866 22.4577H14.292ZM14.292 22.4577H21.292C21.9363 22.4577 22.4587 21.9353 22.4587 21.291V10.2077C22.4587 9.56335 21.9363 9.04102 21.292 9.04102H14.8753" stroke="currentColor" stroke-width="1.51667" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>
 </template>

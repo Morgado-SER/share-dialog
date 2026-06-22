@@ -1,10 +1,8 @@
 <template>
   <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <!-- Secondary person (back-left) -->
-    <path d="M10.5 12.25C12.0188 12.25 13.25 11.0188 13.25 9.5C13.25 7.9812 12.0188 6.75 10.5 6.75C8.9812 6.75 7.75 7.9812 7.75 9.5C7.75 11.0188 8.9812 12.25 10.5 12.25Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M4.5 21.75C4.5 18.4363 7.18629 15.75 10.5 15.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <!-- Primary person (front-right) -->
-    <path d="M17.5 12.25C19.0188 12.25 20.25 11.0188 20.25 9.5C20.25 7.9812 19.0188 6.75 17.5 6.75C15.9812 6.75 14.75 7.9812 14.75 9.5C14.75 11.0188 15.9812 12.25 17.5 12.25Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M11.5 21.75C11.5 18.4363 14.1863 15.75 17.5 15.75C20.8137 15.75 23.5 18.4363 23.5 21.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M6.7457 22.459H15.4218C16.0804 22.459 16.5986 21.9126 16.4673 21.2672C16.105 19.4854 14.9217 16.334 11.0837 16.334C7.24577 16.334 6.06245 19.4854 5.70014 21.2672C5.5689 21.9126 6.08711 22.459 6.7457 22.459Z" stroke="currentColor" stroke-width="1.51667" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M18.375 16.334C20.8002 16.334 21.7936 18.8398 22.1945 20.6459C22.4111 21.6214 21.6222 22.459 20.623 22.459H19.5417" stroke="currentColor" stroke-width="1.51667" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M14.2917 8.74935C14.2917 10.5213 12.8552 11.9577 11.0833 11.9577C9.31142 11.9577 7.875 10.5213 7.875 8.74935C7.875 6.97744 9.31142 5.54102 11.0833 5.54102C12.8552 5.54102 14.2917 6.97744 14.2917 8.74935Z" stroke="currentColor" stroke-width="1.51667" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M17.208 11.9577C18.9799 11.9577 20.1247 10.5213 20.1247 8.74935C20.1247 6.97744 18.9799 5.54102 17.208 5.54102" stroke="currentColor" stroke-width="1.51667" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>
 </template>
