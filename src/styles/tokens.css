@@ -1,0 +1,154 @@
+/* ==========================================================================
+   Design Tokens
+   Single source of truth for all visual values.
+   Never use hardcoded values outside this file.
+   ========================================================================== */
+
+:root {
+  /* --- Color: Neutral --- */
+  --color-neutral-0:   #ffffff;
+  --color-neutral-50:  #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-200: #e5e7eb;
+  --color-neutral-300: #d1d5db;
+  --color-neutral-400: #9ca3af;
+  --color-neutral-500: #6b7280;
+  --color-neutral-600: #4b5563;
+  --color-neutral-700: #374151;
+  --color-neutral-800: #1f2937;
+  --color-neutral-900: #111827;
+
+  /* --- Color: Brand (Primary) --- */
+  --color-brand-50:  #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
+
+  /* --- Color: Semantic --- */
+  --color-success:  #16a34a;
+  --color-warning:  #d97706;
+  --color-error:    #dc2626;
+  --color-info:     #0284c7;
+
+  /* --- Color: Semantic (Light backgrounds) --- */
+  --color-success-bg: #f0fdf4;
+  --color-warning-bg: #fffbeb;
+  --color-error-bg:   #fef2f2;
+  --color-info-bg:    #f0f9ff;
+
+  /* --- Semantic Aliases --- */
+  --color-text-primary:   var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-500);
+  --color-text-disabled:  var(--color-neutral-300);
+  --color-text-inverse:   var(--color-neutral-0);
+  --color-text-link:      var(--color-brand-600);
+
+  --color-bg-page:        var(--color-neutral-50);
+  --color-bg-surface:     var(--color-neutral-0);
+  --color-bg-elevated:    var(--color-neutral-0);
+  --color-bg-subtle:      var(--color-neutral-100);
+  --color-bg-overlay:     rgba(0, 0, 0, 0.4);
+
+  --color-border:         var(--color-neutral-200);
+  --color-border-strong:  var(--color-neutral-300);
+  --color-border-focus:   var(--color-brand-500);
+
+  --color-interactive:          var(--color-brand-600);
+  --color-interactive-hover:    var(--color-brand-700);
+  --color-interactive-active:   var(--color-brand-800);
+  --color-interactive-disabled: var(--color-neutral-300);
+
+  /* --- Typography: Font families --- */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+
+  /* --- Typography: Sizes (using a 4px base) --- */
+  --text-xs:   0.75rem;   /* 12px */
+  --text-sm:   0.875rem;  /* 14px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg:   1.125rem;  /* 18px */
+  --text-xl:   1.25rem;   /* 20px */
+  --text-2xl:  1.5rem;    /* 24px */
+  --text-3xl:  1.875rem;  /* 30px */
+  --text-4xl:  2.25rem;   /* 36px */
+
+  /* --- Typography: Line heights --- */
+  --leading-tight:  1.25;
+  --leading-snug:   1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed:1.625;
+
+  /* --- Typography: Font weights --- */
+  --weight-normal:   400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  /* --- Spacing (4px base scale) --- */
+  --space-0:   0;
+  --space-1:   0.25rem;   /* 4px */
+  --space-2:   0.5rem;    /* 8px */
+  --space-3:   0.75rem;   /* 12px */
+  --space-4:   1rem;      /* 16px */
+  --space-5:   1.25rem;   /* 20px */
+  --space-6:   1.5rem;    /* 24px */
+  --space-8:   2rem;      /* 32px */
+  --space-10:  2.5rem;    /* 40px */
+  --space-12:  3rem;      /* 48px */
+  --space-16:  4rem;      /* 64px */
+  --space-20:  5rem;      /* 80px */
+  --space-24:  6rem;      /* 96px */
+
+  /* --- Border radius --- */
+  --radius-sm:   0.25rem;  /* 4px */
+  --radius-md:   0.375rem; /* 6px */
+  --radius-lg:   0.5rem;   /* 8px */
+  --radius-xl:   0.75rem;  /* 12px */
+  --radius-2xl:  1rem;     /* 16px */
+  --radius-full: 9999px;
+
+  /* --- Shadows --- */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.10), 0 1px 2px -1px rgba(0, 0, 0, 0.10);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -2px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.10), 0 4px 6px -4px rgba(0, 0, 0, 0.10);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.10), 0 8px 10px -6px rgba(0, 0, 0, 0.10);
+
+  /* --- Motion --- */
+  --duration-fast:   100ms;
+  --duration-base:   200ms;
+  --duration-slow:   300ms;
+  --duration-slower: 500ms;
+
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in:      cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:     cubic-bezier(0, 0, 0.2, 1);
+  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --transition-default: var(--duration-base) var(--ease-default);
+
+  /* --- Breakpoints (reference only — use in JS or @media) --- */
+  /* --bp-sm:  640px  */
+  /* --bp-md:  768px  */
+  /* --bp-lg:  1024px */
+  /* --bp-xl:  1280px */
+  /* --bp-2xl: 1536px */
+
+  /* --- Z-index scale --- */
+  --z-base:    0;
+  --z-raised:  10;
+  --z-dropdown:100;
+  --z-sticky:  200;
+  --z-overlay: 300;
+  --z-modal:   400;
+  --z-toast:   500;
+  --z-tooltip: 600;
+}
