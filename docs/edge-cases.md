@@ -1,36 +1,57 @@
 # Edge Cases
 
-Documented edge cases across the application.
-
 ---
 
-## Categories
+## ShareDialog
 
-| Category | Examples |
-|----------|---------|
-| **Data** | Empty, very long strings, special characters, nulls |
-| **Network** | Slow connection, timeout, offline, partial response |
-| **Permissions** | No access, read-only, partial access |
-| **Concurrency** | Multiple users editing, stale data |
-| **Pagination** | First page, last page, single item, zero items |
-| **Input** | Boundary values, invalid formats, paste behaviour |
+### Long item names
+- **Scenario:** `itemName` prop contains a very long string (e.g. 80+ characters)
+- **Expected behaviour:** Title truncates with `text-overflow: ellipsis` on one line
+- **Current behaviour:** Text wraps — no truncation applied yet
+- **Priority:** Medium
+- **Status:** Open
 
----
+### Special characters in item name
+- **Scenario:** Item name contains `<`, `>`, `"`, `&`, or emoji
+- **Expected behaviour:** Rendered safely — Vue's template binding escapes HTML automatically
+- **Current behaviour:** Handled correctly by Vue's default escaping
+- **Priority:** Low
+- **Status:** Handled
 
-## Edge Cases by Feature
+### Empty itemName prop
+- **Scenario:** `itemName` is an empty string or not passed
+- **Expected behaviour:** Fall back to `[name of task, doc, e-file]` default
+- **Current behaviour:** Default prop value handles this correctly
+- **Priority:** Low
+- **Status:** Handled
 
-_Edge cases will be documented here as features are designed._
+### Clicking Done with no recipients
+- **Scenario:** User opens dialog, adds nobody, clicks Done
+- **Expected behaviour:** No API call; dialog closes silently (or with a confirmation)
+- **Current behaviour:** `done` event is emitted — parent decides behaviour
+- **Priority:** Medium
+- **Status:** Open — needs product decision
 
-### Template
+### Viewport narrower than 440px
+- **Scenario:** Dialog displayed on mobile (< 480px viewport)
+- **Expected behaviour:** Dialog fills full width, scrolls if content overflows
+- **Current behaviour:** Dialog clips at 440px
+- **Priority:** High
+- **Status:** Open — responsive behaviour not yet implemented
 
-```
-#### [Feature / Component]: Edge Case Title
-- **Scenario:** Detailed description
-- **Expected behaviour:** What should happen
-- **Current behaviour:** What actually happens (if different)
-- **Priority:** Critical | High | Medium | Low
-- **Status:** Open | Handled | Deferred
-```
+### Keyboard: Escape to close
+- **Scenario:** User presses Escape while dialog is open
+- **Expected behaviour:** Dialog closes
+- **Current behaviour:** Not implemented — needs `keydown` listener on the overlay/document
+- **Priority:** High (accessibility requirement)
+- **Status:** Open
+
+### Focus trap inside dialog
+- **Scenario:** User presses Tab past the last focusable element
+- **Expected behaviour:** Focus cycles back to the first focusable element (close button)
+- **Current behaviour:** Not implemented
+- **Priority:** High (accessibility requirement)
+- **Status:** Open
 
 ---
 _Last updated: 2026-06-22_

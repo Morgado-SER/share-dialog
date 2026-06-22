@@ -5,30 +5,34 @@
    ========================================================================== */
 
 :root {
-  /* --- Color: Neutral --- */
-  --color-neutral-0:   #ffffff;
-  --color-neutral-50:  #f9fafb;
-  --color-neutral-100: #f3f4f6;
-  --color-neutral-200: #e5e7eb;
-  --color-neutral-300: #d1d5db;
-  --color-neutral-400: #9ca3af;
-  --color-neutral-500: #6b7280;
-  --color-neutral-600: #4b5563;
-  --color-neutral-700: #374151;
-  --color-neutral-800: #1f2937;
-  --color-neutral-900: #111827;
+  /* --- Color: Brand — WebCube/Doxis palette --- */
+  --color-brand-50:  #eef1fb;
+  --color-brand-100: #cdd3e3;
+  --color-brand-200: #9bacc8;
+  --color-brand-300: #6880ad;
+  --color-brand-400: #3a5a92;
+  --color-brand-500: #1a3572;
+  --color-brand-600: #052474; /* WebCube/Primary */
+  --color-brand-700: #041d5e;
+  --color-brand-800: #031548;
+  --color-brand-900: #020e32;
 
-  /* --- Color: Brand (Primary) --- */
-  --color-brand-50:  #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-200: #bfdbfe;
-  --color-brand-300: #93c5fd;
-  --color-brand-400: #60a5fa;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
-  --color-brand-800: #1e40af;
-  --color-brand-900: #1e3a8a;
+  /* --- Color: Neutral — WebCube/Grayscale --- */
+  --color-neutral-0:   #ffffff;
+  --color-neutral-50:  #f8f8f8;
+  --color-neutral-100: #f0f0f0;
+  --color-neutral-200: #dddddd; /* Grayscale/Light Gray */
+  --color-neutral-300: #c0c0c0;
+  --color-neutral-400: #939393; /* Grayscale/Gray */
+  --color-neutral-500: #555555; /* Grayscale/Dark Gray */
+  --color-neutral-600: #3a3a3a;
+  --color-neutral-700: #212121; /* Grayscale/Darkest Gray */
+  --color-neutral-800: #141414; /* .Black */
+  --color-neutral-900: #0a0a0a;
+
+  /* --- Typography: Font family --- */
+  --font-sans: 'Figtree', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* --- Color: Semantic --- */
   --color-success:  #16a34a;
