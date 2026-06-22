@@ -120,7 +120,6 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 
 /* ── Header ── */
 .share-dialog__header {
-  padding: 20px 20px 0;
   flex-shrink: 0;
 }
 
@@ -129,7 +128,7 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-bottom: var(--space-2);
+  padding: 20px 20px 4px;
 }
 
 .share-dialog__title {
@@ -166,7 +165,7 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   font-weight: var(--weight-normal);
   line-height: 20px;
   color: var(--color-neutral-500);
-  padding-bottom: var(--space-2);
+  padding: 8px 20px 0;
 }
 
 /* ── Body ── */
@@ -220,12 +219,13 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 
 /* ── List area ── */
 .share-dialog__list-area {
-  flex: 1;
+  flex-shrink: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 10px;
-  min-height: 92px;
+  padding: 124px 10px;
+  width: 100%;
 }
 
 /* ── Empty state ── */

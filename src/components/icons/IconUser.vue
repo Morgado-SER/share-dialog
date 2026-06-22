@@ -7,15 +7,7 @@
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
   >
-    <!-- Head -->
-    <circle cx="11" cy="8" r="3" fill="currentColor" />
-    <!-- Shoulders / body -->
-    <path
-      d="M4 19c0-3.866 3.134-7 7-7s7 3.134 7 7"
-      stroke="currentColor"
-      stroke-width="1.5"
-      stroke-linecap="round"
-      fill="none"
-    />
+    <path d="M13.9788 7.33268C13.9788 8.97803 12.645 10.3118 10.9997 10.3118C9.35433 10.3118 8.02051 8.97803 8.02051 7.33268C8.02051 5.68733 9.35433 4.35352 10.9997 4.35352C12.645 4.35352 13.9788 5.68733 13.9788 7.33268Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M6.27728 17.6465H15.7235C16.7703 17.6465 17.5766 16.7464 17.0878 15.8208C16.3687 14.4593 14.7294 12.834 11.0004 12.834C7.27141 12.834 5.6321 14.4593 4.91304 15.8208C4.42421 16.7464 5.23052 17.6465 6.27728 17.6465Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
   </svg>
 </template>
