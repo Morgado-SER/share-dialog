@@ -69,10 +69,7 @@
   --color-interactive-disabled: var(--color-neutral-300);
 
   /* --- Typography: Font families --- */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  /* --font-sans and --font-mono are defined above with the brand tokens */
 
   /* --- Typography: Sizes (using a 4px base) --- */
   --text-xs:   0.75rem;   /* 12px */
