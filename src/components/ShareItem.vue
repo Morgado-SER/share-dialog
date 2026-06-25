@@ -24,8 +24,8 @@
       <div class="share-item__info">
         <p class="share-item__name">{{ name }}</p>
         <div class="share-item__meta">
-          <span v-if="showBadge" class="share-item__badge">{{ tag }}</span>
-          <span class="share-item__sub">{{ type === 'Secondary' ? role : email }}</span>
+          <span v-if="tag" class="share-item__badge">{{ tag }}</span>
+          <span class="share-item__sub">{{ subText }}</span>
         </div>
       </div>
     </div>
@@ -57,15 +57,14 @@
 </template>
 
 <script setup>
-import AvatarItem     from './AvatarItem.vue'
-import RadioButton    from './RadioButton.vue'
+import AvatarItem      from './AvatarItem.vue'
+import RadioButton     from './RadioButton.vue'
 import IconChevronDown from './icons/IconChevronDown.vue'
 
 defineProps({
-  /** Tertiary = search result (people/users), Secondary = role result */
   type: {
     type: String,
-    default: 'Tertiary',
+    default: 'Secondary',
     validator: v => ['Tertiary', 'Secondary'].includes(v),
   },
   state: {
@@ -73,14 +72,15 @@ defineProps({
     default: 'Default',
     validator: v => ['Default', 'Hover', 'Selected'].includes(v),
   },
-  showBadge:  { type: Boolean, default: true },
-  name:       { type: String,  default: 'Name' },
-  email:      { type: String,  default: 'email@example.com' },
-  role:       { type: String,  default: '[role]' },
-  tag:        { type: String,  default: 'Tag' },
-  permission: { type: String,  default: 'Read' },
-  avatarType: { type: String,  default: 'User' },
-  avatarSrc:  { type: String,  default: '' },
+  name:       { type: String, default: 'Name' },
+  /** Text shown below the name: email for people, "N members" for groups/units/roles */
+  subText:    { type: String, default: '' },
+  /** Badge label (Group / Unit / Role). Null/empty = no badge shown. */
+  tag:        { type: String, default: null },
+  /** Permission label for Tertiary type */
+  permission: { type: String, default: 'Read' },
+  avatarType: { type: String, default: 'User' },
+  avatarSrc:  { type: String, default: '' },
 })
 
 const emit = defineEmits(['select', 'add', 'permission'])
@@ -94,7 +94,7 @@ const emit = defineEmits(['select', 'add', 'permission'])
   height: 54px;
   padding: 6px 10px;
   border-radius: var(--radius-lg);
-  width: 428px;
+  width: 100%;
   transition: background var(--transition-default);
 }
 

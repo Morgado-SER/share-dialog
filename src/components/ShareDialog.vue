@@ -1,5 +1,6 @@
 <template>
   <div class="share-dialog" role="dialog" aria-modal="true" :aria-labelledby="titleId">
+
     <!-- ── Header ── -->
     <div class="share-dialog__header">
       <div class="share-dialog__header-inner">
@@ -22,6 +23,7 @@
 
     <!-- ── Body ── -->
     <div class="share-dialog__body">
+
       <!-- Search field -->
       <div class="share-dialog__search">
         <label :for="inputId" class="share-dialog__label">
@@ -32,16 +34,45 @@
           v-model="searchQuery"
           type="text"
           class="share-dialog__input"
+          :class="{ 'share-dialog__input--active': searchQuery.length > 0 }"
           placeholder="Search by name or email"
           autocomplete="off"
           @input="emit('search', searchQuery)"
         />
       </div>
 
-      <!-- Recipient list area -->
-      <div class="share-dialog__list-area" aria-live="polite" aria-atomic="true">
-        <!-- Empty state -->
-        <div v-if="recipients.length === 0" class="share-dialog__empty">
+      <!-- Search results -->
+      <div
+        v-if="searchQuery.length > 0"
+        class="share-dialog__results"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <div class="share-dialog__results-header">
+          <span class="share-dialog__results-label">Search results</span>
+        </div>
+
+        <ul class="share-dialog__results-list" role="list">
+          <li v-for="result in searchResults" :key="result.id">
+            <ShareItem
+              type="Secondary"
+              :name="result.name"
+              :sub-text="result.subText"
+              :tag="result.tag"
+              :avatar-type="result.avatarType"
+              :avatar-src="result.avatarSrc"
+              @add="handleAdd(result)"
+            />
+          </li>
+          <li v-if="searchResults.length === 0" class="share-dialog__no-results">
+            No results for "{{ searchQuery }}"
+          </li>
+        </ul>
+      </div>
+
+      <!-- Empty state (no query) -->
+      <div v-else class="share-dialog__list-area">
+        <div class="share-dialog__empty">
           <div class="share-dialog__empty-icon" aria-hidden="true">
             <IconUser />
           </div>
@@ -52,10 +83,8 @@
             </p>
           </div>
         </div>
-
-        <!-- Recipient list (populated state — placeholder) -->
-        <!-- TODO: render recipient rows when recipients.length > 0 -->
       </div>
+
     </div>
 
     <!-- ── Footer ── -->
@@ -75,33 +104,40 @@
         Done
       </button>
     </div>
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import IconClose from './icons/IconClose.vue'
-import IconUser from './icons/IconUser.vue'
+import IconClose    from './icons/IconClose.vue'
+import IconUser     from './icons/IconUser.vue'
+import ShareItem    from './ShareItem.vue'
+import { searchMockData } from '../data/mockSearchData.js'
 
 const props = defineProps({
-  /** Display name of the item being shared */
   itemName: {
     type: String,
     default: '[name of task, doc, e-file]',
   },
-  /** Current list of added recipients */
   recipients: {
     type: Array,
     default: () => [],
   },
 })
 
-const emit = defineEmits(['close', 'cancel', 'done', 'search'])
+const emit = defineEmits(['close', 'cancel', 'done', 'search', 'add'])
 
 const searchQuery = ref('')
 
+const searchResults = computed(() => searchMockData(searchQuery.value))
+
+function handleAdd(result) {
+  emit('add', result)
+}
+
 // Stable IDs for accessibility
-const uid = Math.random().toString(36).slice(2, 8)
+const uid     = Math.random().toString(36).slice(2, 8)
 const titleId = computed(() => `share-dialog-title-${uid}`)
 const inputId = computed(() => `share-dialog-search-${uid}`)
 </script>
@@ -178,7 +214,7 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   min-height: 0;
 }
 
-/* ── Search ── */
+/* ── Search field ── */
 .share-dialog__search {
   display: flex;
   flex-direction: column;
@@ -212,12 +248,53 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   color: var(--color-neutral-400);
 }
 
+/* Active state (has value) — Figma: border #939393 */
+.share-dialog__input--active {
+  border-color: var(--color-neutral-400);
+}
+
 .share-dialog__input:focus {
   border-color: var(--color-border-focus);
   box-shadow: 0 0 0 3px rgba(5, 36, 116, 0.12);
 }
 
-/* ── List area ── */
+/* ── Search results ── */
+.share-dialog__results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 10px 0;
+  flex-shrink: 0;
+}
+
+.share-dialog__results-header {
+  padding: 0 10px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.share-dialog__results-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-neutral-700);
+  white-space: nowrap;
+}
+
+.share-dialog__results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.share-dialog__no-results {
+  padding: 16px 10px;
+  font-size: var(--text-sm);
+  color: var(--color-neutral-400);
+  text-align: center;
+}
+
+/* ── Empty state (no query) ── */
 .share-dialog__list-area {
   flex-shrink: 0;
   display: flex;
@@ -228,7 +305,6 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   width: 100%;
 }
 
-/* ── Empty state ── */
 .share-dialog__empty {
   display: flex;
   flex-direction: column;
@@ -279,6 +355,7 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   gap: 10px;
   padding: 16px 20px 20px;
   flex-shrink: 0;
+  background: var(--color-neutral-0);
 }
 
 /* ── Buttons ── */

@@ -67,15 +67,15 @@
         <div class="gallery-col">
           <div class="gallery-item gallery-item--row">
             <span class="gallery-label gallery-label--inline">Default</span>
-            <ShareItem type="Tertiary" state="Default" name="João Morgado" email="joao.morgado@doxis.com" tag="Staff" />
+            <ShareItem type="Tertiary" state="Default" name="João Morgado" sub-text="joao.morgado@doxis.com" />
           </div>
           <div class="gallery-item gallery-item--row">
             <span class="gallery-label gallery-label--inline">Hover</span>
-            <ShareItem type="Tertiary" state="Hover" name="João Morgado" email="joao.morgado@doxis.com" tag="Staff" />
+            <ShareItem type="Tertiary" state="Hover" name="João Morgado" sub-text="joao.morgado@doxis.com" />
           </div>
           <div class="gallery-item gallery-item--row">
             <span class="gallery-label gallery-label--inline">Selected</span>
-            <ShareItem type="Tertiary" state="Selected" name="João Morgado" email="joao.morgado@doxis.com" tag="Staff" />
+            <ShareItem type="Tertiary" state="Selected" name="João Morgado" sub-text="joao.morgado@doxis.com" />
           </div>
         </div>
       </section>
@@ -86,11 +86,11 @@
         <div class="gallery-col">
           <div class="gallery-item gallery-item--row">
             <span class="gallery-label gallery-label--inline">Default</span>
-            <ShareItem type="Secondary" state="Default" name="João Morgado" role="Administrator" tag="Role" />
+            <ShareItem type="Secondary" state="Default" name="João Morgado" sub-text="Administrator" tag="Role" />
           </div>
           <div class="gallery-item gallery-item--row">
             <span class="gallery-label gallery-label--inline">Hover</span>
-            <ShareItem type="Secondary" state="Hover" name="João Morgado" role="Administrator" tag="Role" />
+            <ShareItem type="Secondary" state="Hover" name="João Morgado" sub-text="Administrator" tag="Role" />
           </div>
         </div>
       </section>
