@@ -148,6 +148,7 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   display: flex;
   flex-direction: column;
   width: 440px;
+  height: 602px;
   background: var(--color-neutral-0);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
@@ -208,10 +209,10 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 .share-dialog__body {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  padding-top: 24px;
-  padding-bottom: 20px;
+  flex: 1 0 0;
   min-height: 0;
+  padding-top: 24px;
+  overflow: hidden;
 }
 
 /* ── Search field ── */
@@ -263,8 +264,27 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 20px 10px 0;
-  flex-shrink: 0;
+  flex: 1 0 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px 10px 20px;
+  /* Custom scrollbar — matches Figma Slider component */
+  scrollbar-width: thin;
+  scrollbar-color: #939393 #f5f5f5;
+}
+
+.share-dialog__results::-webkit-scrollbar {
+  width: 4px;
+}
+
+.share-dialog__results::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 2px;
+}
+
+.share-dialog__results::-webkit-scrollbar-thumb {
+  background: #939393;
+  border-radius: 2px;
 }
 
 .share-dialog__results-header {
@@ -296,12 +316,12 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 
 /* ── Empty state (no query) ── */
 .share-dialog__list-area {
-  flex-shrink: 0;
+  flex: 1 0 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 124px 10px;
+  padding: 10px;
   width: 100%;
 }
 
@@ -356,6 +376,7 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   padding: 16px 20px 20px;
   flex-shrink: 0;
   background: var(--color-neutral-0);
+  border-top: 1px solid #f5f5f5;
 }
 
 /* ── Buttons ── */
