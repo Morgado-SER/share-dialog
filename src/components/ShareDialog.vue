@@ -241,7 +241,7 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 0 20px;
+  padding: 0 20px 8px;
   flex-shrink: 0;
 }
 
