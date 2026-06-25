@@ -44,6 +44,7 @@
       <!-- Search results -->
       <div
         v-if="searchQuery.length > 0"
+        ref="resultsRef"
         class="share-dialog__results"
         aria-live="polite"
         aria-atomic="true"
@@ -110,7 +111,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import IconClose    from './icons/IconClose.vue'
 import IconUser     from './icons/IconUser.vue'
 import ShareItem    from './ShareItem.vue'
@@ -131,14 +132,26 @@ const emit = defineEmits(['close', 'cancel', 'done', 'search', 'add'])
 
 const searchQuery = ref('')
 const isScrolled  = ref(false)
+const resultsRef  = ref(null)
 
 const searchResults = computed(() => searchMockData(searchQuery.value))
 
-watch(searchQuery, () => { isScrolled.value = false })
+function checkOverflow(el) {
+  if (!el) return
+  // Show border when content is clipped below OR content has scrolled above
+  isScrolled.value =
+    el.scrollTop > 0 ||
+    Math.round(el.scrollTop + el.clientHeight) < el.scrollHeight
+}
 
 function onResultsScroll(e) {
-  isScrolled.value = e.target.scrollTop > 0
+  checkOverflow(e.target)
 }
+
+watch(searchResults, () => {
+  isScrolled.value = false
+  nextTick(() => checkOverflow(resultsRef.value))
+})
 
 function handleAdd(result) {
   emit('add', result)
