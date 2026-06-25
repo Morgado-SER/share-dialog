@@ -47,6 +47,7 @@
         class="share-dialog__results"
         aria-live="polite"
         aria-atomic="true"
+        @scroll="onResultsScroll"
       >
         <div class="share-dialog__results-header">
           <span class="share-dialog__results-label">Search results</span>
@@ -88,7 +89,7 @@
     </div>
 
     <!-- ── Footer ── -->
-    <div class="share-dialog__footer">
+    <div class="share-dialog__footer" :class="{ 'share-dialog__footer--bordered': isScrolled }">
       <button
         type="button"
         class="share-dialog__btn share-dialog__btn--secondary"
@@ -109,7 +110,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import IconClose    from './icons/IconClose.vue'
 import IconUser     from './icons/IconUser.vue'
 import ShareItem    from './ShareItem.vue'
@@ -129,8 +130,15 @@ const props = defineProps({
 const emit = defineEmits(['close', 'cancel', 'done', 'search', 'add'])
 
 const searchQuery = ref('')
+const isScrolled  = ref(false)
 
 const searchResults = computed(() => searchMockData(searchQuery.value))
+
+watch(searchQuery, () => { isScrolled.value = false })
+
+function onResultsScroll(e) {
+  isScrolled.value = e.target.scrollTop > 0
+}
 
 function handleAdd(result) {
   emit('add', result)
@@ -376,7 +384,12 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   padding: 16px 20px 20px;
   flex-shrink: 0;
   background: var(--color-neutral-0);
-  border-top: 1px solid #f5f5f5;
+  border-top: 1px solid transparent;
+  transition: border-color 120ms ease;
+}
+
+.share-dialog__footer--bordered {
+  border-top-color: #f5f5f5;
 }
 
 /* ── Buttons ── */
