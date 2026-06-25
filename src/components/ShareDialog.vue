@@ -138,10 +138,8 @@ const searchResults = computed(() => searchMockData(searchQuery.value))
 
 function checkOverflow(el) {
   if (!el) return
-  // Show border when content is clipped below OR content has scrolled above
-  isScrolled.value =
-    el.scrollTop > 0 ||
-    Math.round(el.scrollTop + el.clientHeight) < el.scrollHeight
+  // Show border only when content is being clipped below the footer
+  isScrolled.value = Math.round(el.scrollTop + el.clientHeight) < el.scrollHeight
 }
 
 function onResultsScroll(e) {
