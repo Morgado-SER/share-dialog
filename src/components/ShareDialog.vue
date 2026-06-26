@@ -373,16 +373,16 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 }
 
 .share-dialog__empty-title {
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: var(--weight-bold);
-  line-height: 16px;
+  line-height: 20px;
   color: var(--color-neutral-700);
 }
 
 .share-dialog__empty-body {
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: var(--weight-normal);
-  line-height: 16px;
+  line-height: 20px;
   color: var(--color-neutral-500);
 }
 
