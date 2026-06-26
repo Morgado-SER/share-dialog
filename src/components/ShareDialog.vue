@@ -88,6 +88,7 @@
                 :avatar-src="recipient.avatarSrc"
                 :permission="recipient.permission"
                 @update:permission="updatePermission(recipient.id, $event)"
+                @remove="removeRecipient(recipient.id)"
               />
             </li>
           </ul>
@@ -182,6 +183,10 @@ function handleAdd(result) {
 function updatePermission(id, permission) {
   const r = recipients.value.find(r => r.id === id)
   if (r) r.permission = permission
+}
+
+function removeRecipient(id) {
+  recipients.value = recipients.value.filter(r => r.id !== id)
 }
 
 // Stable IDs for accessibility

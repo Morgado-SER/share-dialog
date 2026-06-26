@@ -64,15 +64,31 @@
       :style="dropdownStyle"
       @click.stop
     >
+      <!-- Permission options -->
+      <div class="perm-dropdown__options">
+        <button
+          v-for="perm in PERMISSIONS"
+          :key="perm"
+          type="button"
+          class="perm-dropdown__option"
+          :class="{ 'perm-dropdown__option--active': perm === permission }"
+          @click="selectPermission(perm)"
+        >
+          <span class="perm-dropdown__option-label">{{ perm }}</span>
+          <IconCheck v-if="perm === permission" class="perm-dropdown__check" />
+        </button>
+      </div>
+
+      <!-- Divider -->
+      <div class="perm-dropdown__divider" />
+
+      <!-- Remove -->
       <button
-        v-for="perm in PERMISSIONS"
-        :key="perm"
         type="button"
-        class="perm-dropdown__option"
-        :class="{ 'perm-dropdown__option--active': perm === permission }"
-        @click="selectPermission(perm)"
+        class="perm-dropdown__remove"
+        @click="removeRecipient"
       >
-        {{ perm }}
+        Remove
       </button>
     </div>
   </Teleport>
@@ -83,6 +99,7 @@ import { ref, nextTick } from 'vue'
 import AvatarItem      from './AvatarItem.vue'
 import RadioButton     from './RadioButton.vue'
 import IconChevronDown from './icons/IconChevronDown.vue'
+import IconCheck       from './icons/IconCheck.vue'
 
 const PERMISSIONS = ['Read/display', 'Write/modify', 'Full access', 'Custom']
 
@@ -105,7 +122,7 @@ defineProps({
   avatarSrc:  { type: String, default: '' },
 })
 
-const emit = defineEmits(['select', 'add', 'update:permission'])
+const emit = defineEmits(['select', 'add', 'update:permission', 'remove'])
 
 // ── Dropdown ──
 const showDropdown  = ref(false)
@@ -130,6 +147,11 @@ function closeDropdown() {
 
 function selectPermission(perm) {
   emit('update:permission', perm)
+  closeDropdown()
+}
+
+function removeRecipient() {
+  emit('remove')
   closeDropdown()
 }
 </script>
@@ -259,34 +281,88 @@ function selectPermission(perm) {
   background: #ffffff;
   border: 1px solid #dddddd;
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
-  min-width: 148px;
-  padding: 4px 0;
+  /* Figma "Lighter Shadow" */
+  box-shadow:
+    0px 100px 84px 0px rgba(0, 0, 0, 0.05),
+    0px 22.336px 18.762px 0px rgba(0, 0, 0, 0.03),
+    0px 6.65px 5.586px 0px rgba(0, 0, 0, 0.02);
+  min-width: 160px;
+  overflow: hidden;
+}
+
+/* ── Permission options block ── */
+.perm-dropdown__options {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  padding: 4px;
 }
 
 .perm-dropdown__option {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   width: 100%;
-  padding: 9px 14px;
+  height: 40px;
+  padding: 8px 12px;
+  border-radius: 4px;
   font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   font-weight: 400;
   color: #212121;
-  text-align: left;
   background: transparent;
   transition: background 100ms ease;
   white-space: nowrap;
 }
 
 .perm-dropdown__option:hover {
-  background: #f5f5f5;
+  background: #f0f0f0;
 }
 
 .perm-dropdown__option--active {
-  font-weight: 500;
+  background: #f3f4f8;
   color: #052474;
+}
+
+.perm-dropdown__option--active:hover {
+  background: #eaecf3;
+}
+
+.perm-dropdown__option-label {
+  flex: 1;
+  text-align: left;
+}
+
+.perm-dropdown__check {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: #052474;
+}
+
+/* ── Divider ── */
+.perm-dropdown__divider {
+  height: 1px;
+  background: #f0f0f0;
+}
+
+/* ── Remove option ── */
+.perm-dropdown__remove {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 40px;
+  padding: 8px 16px;
+  font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #d3200e;
+  background: transparent;
+  transition: background 100ms ease;
+  white-space: nowrap;
+}
+
+.perm-dropdown__remove:hover {
+  background: #fef2f0;
 }
 </style>
