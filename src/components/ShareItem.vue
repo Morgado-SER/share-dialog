@@ -146,6 +146,7 @@ function selectPermission(perm) {
   transition: background var(--transition-default);
 }
 
+.share-item:hover,
 .share-item--hover,
 .share-item--selected {
   background: #f5f5f5;
