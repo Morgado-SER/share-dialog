@@ -236,7 +236,7 @@ function selectPermission(perm) {
 }
 
 .share-item__btn--permission:hover {
-  background: var(--color-brand-50);
+  background: #e5e5e5;
 }
 
 /* Add button (Secondary) — outlined */
