@@ -172,6 +172,7 @@ function selectPermission(perm) {
 .share-item__name {
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
+  line-height: 17px;
   color: var(--color-neutral-700);
   white-space: nowrap;
   overflow: hidden;
@@ -202,6 +203,7 @@ function selectPermission(perm) {
 .share-item__sub {
   font-size: var(--text-sm);
   font-weight: var(--weight-normal);
+  line-height: 17px;
   color: var(--color-neutral-500);
   white-space: nowrap;
   overflow: hidden;
