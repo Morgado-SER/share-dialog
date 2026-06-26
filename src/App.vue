@@ -23,11 +23,10 @@
     <main v-if="view === 'dialog'" class="prototype-stage">
       <ShareDialog
         item-name="Project Alpha — Q3 Report"
-        :recipients="recipients"
         @close="handleClose"
         @cancel="handleCancel"
         @done="handleDone"
-        @search="handleSearch"
+        @add="handleAdd"
       />
     </main>
 
@@ -105,13 +104,12 @@ import ShareDialog  from './components/ShareDialog.vue'
 import AvatarItem   from './components/AvatarItem.vue'
 import ShareItem    from './components/ShareItem.vue'
 
-const view       = ref('dialog')
-const recipients = ref([])
+const view = ref('dialog')
 
-function handleClose()        { console.log('Dialog closed') }
-function handleCancel()       { console.log('Cancelled') }
-function handleDone()         { console.log('Done — recipients:', recipients.value) }
-function handleSearch(query)  { console.log('Search:', query) }
+function handleClose()      { console.log('Dialog closed') }
+function handleCancel()     { console.log('Cancelled') }
+function handleDone()       { console.log('Done') }
+function handleAdd(result)  { console.log('Added:', result.name) }
 </script>
 
 <style scoped>

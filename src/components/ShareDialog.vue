@@ -37,42 +37,64 @@
           :class="{ 'share-dialog__input--active': searchQuery.length > 0 }"
           placeholder="Search by name or email"
           autocomplete="off"
-          @input="emit('search', searchQuery)"
         />
       </div>
 
-      <!-- Search results -->
+      <!-- Search results OR Shared-with list — share the same scrollable container -->
       <div
-        v-if="searchQuery.length > 0"
+        v-if="searchQuery.length > 0 || recipients.length > 0"
         ref="resultsRef"
         class="share-dialog__results"
         aria-live="polite"
         aria-atomic="true"
         @scroll="onResultsScroll"
       >
-        <div class="share-dialog__results-header">
-          <span class="share-dialog__results-label">Search results</span>
-        </div>
+        <!-- Search results -->
+        <template v-if="searchQuery.length > 0">
+          <div class="share-dialog__section-header">
+            <span class="share-dialog__section-label">Search results</span>
+          </div>
+          <ul class="share-dialog__list" role="list">
+            <li v-for="result in searchResults" :key="result.id">
+              <ShareItem
+                type="Secondary"
+                :name="result.name"
+                :sub-text="result.subText"
+                :tag="result.tag"
+                :avatar-type="result.avatarType"
+                :avatar-src="result.avatarSrc"
+                @add="handleAdd(result)"
+              />
+            </li>
+            <li v-if="searchResults.length === 0" class="share-dialog__no-results">
+              No results for "{{ searchQuery }}"
+            </li>
+          </ul>
+        </template>
 
-        <ul class="share-dialog__results-list" role="list">
-          <li v-for="result in searchResults" :key="result.id">
-            <ShareItem
-              type="Secondary"
-              :name="result.name"
-              :sub-text="result.subText"
-              :tag="result.tag"
-              :avatar-type="result.avatarType"
-              :avatar-src="result.avatarSrc"
-              @add="handleAdd(result)"
-            />
-          </li>
-          <li v-if="searchResults.length === 0" class="share-dialog__no-results">
-            No results for "{{ searchQuery }}"
-          </li>
-        </ul>
+        <!-- Shared with list (query cleared, at least one recipient) -->
+        <template v-else>
+          <div class="share-dialog__section-header">
+            <span class="share-dialog__section-label">Shared with:</span>
+          </div>
+          <ul class="share-dialog__list" role="list">
+            <li v-for="recipient in recipients" :key="recipient.id">
+              <ShareItem
+                type="Tertiary"
+                :name="recipient.name"
+                :sub-text="recipient.subText"
+                :tag="recipient.tag"
+                :avatar-type="recipient.avatarType"
+                :avatar-src="recipient.avatarSrc"
+                :permission="recipient.permission"
+                @update:permission="updatePermission(recipient.id, $event)"
+              />
+            </li>
+          </ul>
+        </template>
       </div>
 
-      <!-- Empty state (no query) -->
+      <!-- Empty state (no query, no recipients) -->
       <div v-else class="share-dialog__list-area">
         <div class="share-dialog__empty">
           <div class="share-dialog__empty-icon" aria-hidden="true">
@@ -112,9 +134,9 @@
 
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
-import IconClose    from './icons/IconClose.vue'
-import IconUser     from './icons/IconUser.vue'
-import ShareItem    from './ShareItem.vue'
+import IconClose from './icons/IconClose.vue'
+import IconUser  from './icons/IconUser.vue'
+import ShareItem from './ShareItem.vue'
 import { searchMockData } from '../data/mockSearchData.js'
 
 const props = defineProps({
@@ -122,23 +144,23 @@ const props = defineProps({
     type: String,
     default: '[name of task, doc, e-file]',
   },
-  recipients: {
-    type: Array,
-    default: () => [],
-  },
 })
 
-const emit = defineEmits(['close', 'cancel', 'done', 'search', 'add'])
+const emit = defineEmits(['close', 'cancel', 'done', 'add'])
 
 const searchQuery = ref('')
 const isScrolled  = ref(false)
 const resultsRef  = ref(null)
+const recipients  = ref([])
 
-const searchResults = computed(() => searchMockData(searchQuery.value))
+// Filter out already-added recipients from search results
+const searchResults = computed(() => {
+  const addedIds = new Set(recipients.value.map(r => r.id))
+  return searchMockData(searchQuery.value).filter(r => !addedIds.has(r.id))
+})
 
 function checkOverflow(el) {
   if (!el) return
-  // Show border only when content is being clipped below the footer
   isScrolled.value = Math.round(el.scrollTop + el.clientHeight) < el.scrollHeight
 }
 
@@ -146,13 +168,20 @@ function onResultsScroll(e) {
   checkOverflow(e.target)
 }
 
-watch(searchResults, () => {
+watch([searchResults, recipients], () => {
   isScrolled.value = false
   nextTick(() => checkOverflow(resultsRef.value))
 })
 
 function handleAdd(result) {
+  recipients.value.push({ ...result, permission: 'Read/display' })
+  searchQuery.value = ''
   emit('add', result)
+}
+
+function updatePermission(id, permission) {
+  const r = recipients.value.find(r => r.id === id)
+  if (r) r.permission = permission
 }
 
 // Stable IDs for accessibility
@@ -268,7 +297,6 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   color: var(--color-neutral-400);
 }
 
-/* Active state (has value) — Figma: border #939393 */
 .share-dialog__input--active {
   border-color: var(--color-neutral-400);
 }
@@ -278,7 +306,7 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   box-shadow: 0 0 0 3px rgba(5, 36, 116, 0.12);
 }
 
-/* ── Search results ── */
+/* ── Scrollable results / shared-with container ── */
 .share-dialog__results {
   display: flex;
   flex-direction: column;
@@ -287,7 +315,6 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   min-height: 0;
   overflow-y: auto;
   padding: 20px 10px 20px;
-  /* Custom scrollbar — matches Figma Slider component */
   scrollbar-width: thin;
   scrollbar-color: #939393 #f5f5f5;
 }
@@ -306,21 +333,23 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   border-radius: 2px;
 }
 
-.share-dialog__results-header {
+/* ── Section header (shared by results + shared-with) ── */
+.share-dialog__section-header {
   padding: 0 10px;
   height: 18px;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
-.share-dialog__results-label {
+.share-dialog__section-label {
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   color: var(--color-neutral-700);
   white-space: nowrap;
 }
 
-.share-dialog__results-list {
+.share-dialog__list {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -333,7 +362,7 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   text-align: center;
 }
 
-/* ── Empty state (no query) ── */
+/* ── Empty state ── */
 .share-dialog__list-area {
   flex: 1 0 0;
   display: flex;

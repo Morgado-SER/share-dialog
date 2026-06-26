@@ -32,12 +32,13 @@
 
     <!-- Right: action button -->
     <div class="share-item__action">
-      <!-- Tertiary: text button with chevron (permission dropdown) -->
+      <!-- Tertiary: permission dropdown trigger -->
       <button
         v-if="type === 'Tertiary'"
+        ref="permBtnRef"
         type="button"
         class="share-item__btn share-item__btn--permission"
-        @click="emit('permission')"
+        @click.stop="openDropdown"
       >
         <span>{{ permission }}</span>
         <IconChevronDown />
@@ -54,12 +55,36 @@
       </button>
     </div>
   </div>
+
+  <!-- Permission dropdown — teleported to body to escape overflow clipping -->
+  <Teleport to="body">
+    <div
+      v-if="showDropdown"
+      class="perm-dropdown"
+      :style="dropdownStyle"
+      @click.stop
+    >
+      <button
+        v-for="perm in PERMISSIONS"
+        :key="perm"
+        type="button"
+        class="perm-dropdown__option"
+        :class="{ 'perm-dropdown__option--active': perm === permission }"
+        @click="selectPermission(perm)"
+      >
+        {{ perm }}
+      </button>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
+import { ref, nextTick } from 'vue'
 import AvatarItem      from './AvatarItem.vue'
 import RadioButton     from './RadioButton.vue'
 import IconChevronDown from './icons/IconChevronDown.vue'
+
+const PERMISSIONS = ['Read/display', 'Write/modify', 'Full access', 'Custom']
 
 defineProps({
   type: {
@@ -73,17 +98,40 @@ defineProps({
     validator: v => ['Default', 'Hover', 'Selected'].includes(v),
   },
   name:       { type: String, default: 'Name' },
-  /** Text shown below the name: email for people, "N members" for groups/units/roles */
   subText:    { type: String, default: '' },
-  /** Badge label (Group / Unit / Role). Null/empty = no badge shown. */
   tag:        { type: String, default: null },
-  /** Permission label for Tertiary type */
-  permission: { type: String, default: 'Read' },
+  permission: { type: String, default: 'Read/display' },
   avatarType: { type: String, default: 'User' },
   avatarSrc:  { type: String, default: '' },
 })
 
-const emit = defineEmits(['select', 'add', 'permission'])
+const emit = defineEmits(['select', 'add', 'update:permission'])
+
+// ── Dropdown ──
+const showDropdown  = ref(false)
+const dropdownStyle = ref({})
+const permBtnRef    = ref(null)
+
+function openDropdown() {
+  const rect = permBtnRef.value.getBoundingClientRect()
+  dropdownStyle.value = {
+    top:   `${rect.bottom + 4}px`,
+    right: `${window.innerWidth - rect.right}px`,
+  }
+  showDropdown.value = true
+  nextTick(() => {
+    document.addEventListener('click', closeDropdown, { once: true })
+  })
+}
+
+function closeDropdown() {
+  showDropdown.value = false
+}
+
+function selectPermission(perm) {
+  emit('update:permission', perm)
+  closeDropdown()
+}
 </script>
 
 <style scoped>
@@ -177,7 +225,7 @@ const emit = defineEmits(['select', 'add', 'permission'])
   transition: background var(--transition-default), border-color var(--transition-default);
 }
 
-/* Permission dropdown (Tertiary) — no border */
+/* Permission dropdown trigger (Tertiary) — no border */
 .share-item__btn--permission {
   gap: 4px;
   padding: 0 6px 0 8px;
@@ -197,5 +245,45 @@ const emit = defineEmits(['select', 'add', 'permission'])
 
 .share-item__btn--add:hover {
   background: var(--color-brand-50);
+}
+</style>
+
+<!-- Dropdown is teleported to <body> — must be unscoped -->
+<style>
+.perm-dropdown {
+  position: fixed;
+  z-index: 200;
+  background: #ffffff;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+  min-width: 148px;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.perm-dropdown__option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 9px 14px;
+  font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #212121;
+  text-align: left;
+  background: transparent;
+  transition: background 100ms ease;
+  white-space: nowrap;
+}
+
+.perm-dropdown__option:hover {
+  background: #f5f5f5;
+}
+
+.perm-dropdown__option--active {
+  font-weight: 500;
+  color: #052474;
 }
 </style>
