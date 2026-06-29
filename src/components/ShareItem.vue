@@ -82,14 +82,16 @@
       <!-- Divider -->
       <div class="perm-dropdown__divider" />
 
-      <!-- Remove -->
-      <button
-        type="button"
-        class="perm-dropdown__remove"
-        @click="removeRecipient"
-      >
-        Remove
-      </button>
+      <!-- Remove — own row container, same structure as permissions block -->
+      <div class="perm-dropdown__remove-container">
+        <button
+          type="button"
+          class="perm-dropdown__remove"
+          @click="removeRecipient"
+        >
+          Remove
+        </button>
+      </div>
     </div>
   </Teleport>
 </template>
@@ -346,13 +348,22 @@ function removeRecipient() {
   background: #f0f0f0;
 }
 
-/* ── Remove option ── */
+/* ── Remove section — mirrors permissions block structure ── */
+.perm-dropdown__remove-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  width: 100%;
+}
+
 .perm-dropdown__remove {
   display: flex;
   align-items: center;
   width: 100%;
   height: 40px;
-  padding: 8px 16px;
+  padding: 8px 12px;
+  border-radius: 4px;
   font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   font-weight: 400;
