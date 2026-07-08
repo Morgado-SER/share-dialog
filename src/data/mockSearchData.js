@@ -10,7 +10,7 @@ export const mockSearchData = [
   // People
   { id: 1,  name: 'Joanna Lee',          avatarType: 'Avatar', avatarSrc: 'https://i.pravatar.cc/84?img=9',  subText: 'joanna.lee@doxis.com',     tag: null   },
   { id: 2,  name: 'Jodie Taylor',         avatarType: 'User',   avatarSrc: '',                                subText: 'jodie.taylor@doxis.com',   tag: null   },
-  { id: 3,  name: 'João Morgado',         avatarType: 'User',   avatarSrc: '',                                subText: 'joao.morgado@doxis.com',   tag: null   },
+  { id: 3,  name: 'João Morgado',         avatarType: 'User',   avatarSrc: '',                                subText: 'joao.morgado.oliveira@doxis.com', tag: null   },
   { id: 4,  name: 'James Wilson',         avatarType: 'User',   avatarSrc: '',                                subText: 'james.wilson@doxis.com',   tag: null   },
   { id: 5,  name: 'Julia Santos',         avatarType: 'User',   avatarSrc: '',                                subText: 'julia.santos@doxis.com',   tag: null   },
   // Groups
