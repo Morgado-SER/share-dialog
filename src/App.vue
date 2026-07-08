@@ -9,9 +9,14 @@
     <nav class="prototype-nav">
       <button
         class="prototype-nav__tab"
-        :class="{ 'prototype-nav__tab--active': view === 'dialog' }"
-        @click="view = 'dialog'"
-      >Dialog</button>
+        :class="{ 'prototype-nav__tab--active': view === 'share' }"
+        @click="view = 'share'"
+      >Share</button>
+      <button
+        class="prototype-nav__tab"
+        :class="{ 'prototype-nav__tab--active': view === 'rights' }"
+        @click="view = 'rights'"
+      >Rights</button>
       <button
         class="prototype-nav__tab"
         :class="{ 'prototype-nav__tab--active': view === 'components' }"
@@ -19,9 +24,20 @@
       >Components</button>
     </nav>
 
-    <!-- Dialog view -->
-    <main v-if="view === 'dialog'" class="prototype-stage">
+    <!-- Share dialog (simple) -->
+    <main v-if="view === 'share'" class="prototype-stage">
       <ShareDialog
+        item-name="Project Alpha — Q3 Report"
+        @close="handleClose"
+        @cancel="handleCancel"
+        @done="handleDone"
+        @add="handleAdd"
+      />
+    </main>
+
+    <!-- Rights dialog (advanced) -->
+    <main v-else-if="view === 'rights'" class="prototype-stage">
+      <RightsDialog
         item-name="Project Alpha — Q3 Report"
         @close="handleClose"
         @cancel="handleCancel"
@@ -94,6 +110,25 @@
         </div>
       </section>
 
+      <!-- Link button — Advanced options states -->
+      <section class="gallery-section">
+        <h3 class="gallery-section__title">Link button — Advanced options</h3>
+        <div class="gallery-col">
+          <div class="gallery-item gallery-item--row">
+            <span class="gallery-label gallery-label--inline">Default</span>
+            <button type="button" class="link-btn">Advanced options</button>
+          </div>
+          <div class="gallery-item gallery-item--row">
+            <span class="gallery-label gallery-label--inline">Hover</span>
+            <button type="button" class="link-btn link-btn--hover">Advanced options</button>
+          </div>
+          <div class="gallery-item gallery-item--row">
+            <span class="gallery-label gallery-label--inline">Disabled</span>
+            <button type="button" class="link-btn link-btn--disabled">Advanced options</button>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 </template>
@@ -101,10 +136,11 @@
 <script setup>
 import { ref } from 'vue'
 import ShareDialog  from './components/ShareDialog.vue'
+import RightsDialog from './components/RightsDialog.vue'
 import AvatarItem   from './components/AvatarItem.vue'
 import ShareItem    from './components/ShareItem.vue'
 
-const view = ref('dialog')
+const view = ref('rights')
 
 function handleClose()      { console.log('Dialog closed') }
 function handleCancel()     { console.log('Cancelled') }
@@ -189,7 +225,7 @@ function handleAdd(result)  { console.log('Added:', result.name) }
 .prototype-gallery {
   flex: 1;
   padding: var(--space-8) var(--space-10);
-  background: var(--color-bg-page);
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   gap: var(--space-10);
@@ -220,6 +256,7 @@ function handleAdd(result)  { console.log('Added:', result.name) }
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  max-width: 512px;
 }
 
 .gallery-item {
@@ -244,5 +281,32 @@ function handleAdd(result)  { console.log('Added:', result.name) }
   width: 56px;
   text-align: right;
   flex-shrink: 0;
+}
+
+/* ── Link button demo (Advanced options states) ── */
+.link-btn {
+  background: transparent;
+  padding: 0 2px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  color: var(--color-brand-600);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: text-decoration-color var(--transition-default);
+  cursor: pointer;
+}
+
+.link-btn:hover,
+.link-btn--hover {
+  text-decoration-color: currentColor;
+}
+
+.link-btn--disabled,
+.link-btn--disabled:hover {
+  color: #c3c3c3;
+  text-decoration-color: transparent;
+  cursor: not-allowed;
 }
 </style>
