@@ -6,6 +6,9 @@ A Vue 3 + Vite prototype for the WebCube / Doxis design system, covering two rel
 
 **[morgado-ser.github.io/share-dialog](https://morgado-ser.github.io/share-dialog/)**
 
+> **Developers:** see **[HANDOVER.md](HANDOVER.md)** for component APIs, behaviour specs,
+> the mock-data → backend integration checklist, and Figma source references.
+
 The prototype has three tabs:
 
 | Tab | What it shows |
