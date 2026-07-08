@@ -74,11 +74,10 @@ npm run preview  # preview the production build
 
 ## Deployment
 
-The live prototype is served from the `gh-pages` branch via GitHub Pages. To redeploy after changes:
+The live prototype **deploys automatically** to GitHub Pages on every push to `main`,
+via the [`Deploy to GitHub Pages`](.github/workflows/deploy.yml) workflow (build with
+Vite → publish `dist/`). No manual step is needed — push to `main` and the live link
+updates once the workflow finishes.
 
-```bash
-npm run build
-# publish the contents of dist/ to the gh-pages branch
-```
-
-The Vite `base` is set to `/share-dialog/` for production builds so assets resolve under the repository subpath.
+The Vite `base` is set to `/share-dialog/` for production builds so assets resolve under
+the repository subpath.
