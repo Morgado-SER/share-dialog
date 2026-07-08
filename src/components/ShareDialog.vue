@@ -1,5 +1,10 @@
 <template>
-  <div class="share-dialog" role="dialog" aria-modal="true" :aria-labelledby="titleId">
+  <div
+    class="share-dialog"
+    role="dialog"
+    aria-modal="true"
+    :aria-labelledby="titleId"
+  >
 
     <!-- ── Header ── -->
     <div class="share-dialog__header">
@@ -21,7 +26,7 @@
       </p>
     </div>
 
-    <!-- ── Body ── -->
+    <!-- ── Body: search + results ── -->
     <div class="share-dialog__body">
 
       <!-- Search field -->
@@ -40,7 +45,7 @@
         />
       </div>
 
-      <!-- Search results OR Shared-with list — share the same scrollable container -->
+      <!-- Search results OR Shared-with list -->
       <div
         v-if="searchQuery.length > 0 || recipients.length > 0"
         ref="resultsRef"
@@ -63,7 +68,10 @@
                 :tag="result.tag"
                 :avatar-type="result.avatarType"
                 :avatar-src="result.avatarSrc"
+                :added="result.added"
+                :permission-control="false"
                 @add="handleAdd(result)"
+                @remove="removeRecipient(result.id)"
               />
             </li>
             <li v-if="searchResults.length === 0" class="share-dialog__no-results">
@@ -72,7 +80,7 @@
           </ul>
         </template>
 
-        <!-- Shared with list (query cleared, at least one recipient) -->
+        <!-- Shared with list -->
         <template v-else>
           <div class="share-dialog__section-header">
             <span class="share-dialog__section-label">Shared with:</span>
@@ -86,8 +94,8 @@
                 :tag="recipient.tag"
                 :avatar-type="recipient.avatarType"
                 :avatar-src="recipient.avatarSrc"
-                :permission="recipient.permission"
-                @update:permission="updatePermission(recipient.id, $event)"
+                :permission-control="false"
+                :deletable="true"
                 @remove="removeRecipient(recipient.id)"
               />
             </li>
@@ -95,7 +103,7 @@
         </template>
       </div>
 
-      <!-- Empty state (no query, no recipients) -->
+      <!-- Empty state -->
       <div v-else class="share-dialog__list-area">
         <div class="share-dialog__empty">
           <div class="share-dialog__empty-icon" aria-hidden="true">
@@ -154,10 +162,17 @@ const isScrolled  = ref(false)
 const resultsRef  = ref(null)
 const recipients  = ref([])
 
-// Filter out already-added recipients from search results
+// Show all matches; mark the ones already added so they render with the
+// permission control instead of the Add button
 const searchResults = computed(() => {
-  const addedIds = new Set(recipients.value.map(r => r.id))
-  return searchMockData(searchQuery.value).filter(r => !addedIds.has(r.id))
+  return searchMockData(searchQuery.value).map(r => {
+    const existing = recipients.value.find(x => x.id === r.id)
+    return {
+      ...r,
+      added:      !!existing,
+      permission: existing ? existing.permission : 'Read/display',
+    }
+  })
 })
 
 function checkOverflow(el) {
@@ -175,14 +190,12 @@ watch([searchResults, recipients], () => {
 })
 
 function handleAdd(result) {
-  recipients.value.push({ ...result, permission: 'Read/display' })
+  recipients.value.push({
+    ...result,
+    permission: 'Read/display',
+  })
   searchQuery.value = ''
   emit('add', result)
-}
-
-function updatePermission(id, permission) {
-  const r = recipients.value.find(r => r.id === id)
-  if (r) r.permission = permission
 }
 
 function removeRecipient(id) {
@@ -200,7 +213,7 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 .share-dialog {
   display: flex;
   flex-direction: column;
-  width: 440px;
+  width: 488px;
   height: 602px;
   background: var(--color-neutral-0);
   border-radius: var(--radius-lg);
