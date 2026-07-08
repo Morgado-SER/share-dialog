@@ -3,17 +3,28 @@
     class="share-item"
     :class="[
       `share-item--${type.toLowerCase()}`,
-      `share-item--${state.toLowerCase()}`,
+      {
+        'share-item--selected': selected,
+        'share-item--clickable': type === 'Tertiary' && advanced,
+      },
     ]"
+    @click="type === 'Tertiary' && advanced && emit('select')"
   >
-    <!-- Left: radio (Tertiary only) + avatar + text -->
+    <!-- Left: checkbox (advanced mode) + avatar + text -->
     <div class="share-item__left">
-      <RadioButton
-        v-if="type === 'Tertiary'"
-        :checked="state === 'Selected'"
-        :label="name"
-        @update:checked="emit('select')"
-      />
+      <button
+        v-if="type === 'Tertiary' && advanced"
+        type="button"
+        class="share-item__checkbox"
+        :class="{ 'share-item__checkbox--checked': selected }"
+        :aria-pressed="selected"
+        :aria-label="`Select ${name}`"
+        @click.stop="emit('select')"
+      >
+        <svg v-if="selected" width="10" height="8" viewBox="0 0 10 8" fill="none">
+          <path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
 
       <AvatarItem
         :type="avatarType"
@@ -25,16 +36,21 @@
         <p class="share-item__name">{{ name }}</p>
         <div class="share-item__meta">
           <span v-if="tag" class="share-item__badge">{{ tag }}</span>
-          <span class="share-item__sub">{{ subText }}</span>
+          <span
+            ref="subRef"
+            class="share-item__sub"
+            @mouseenter="onSubHover"
+            @mouseleave="tooltipVisible = false"
+          >{{ subText }}</span>
         </div>
       </div>
     </div>
 
     <!-- Right: action button -->
-    <div class="share-item__action">
-      <!-- Tertiary: permission dropdown trigger -->
+    <div class="share-item__action" @click.stop>
+      <!-- Permission dropdown trigger (Tertiary, or already-added search result) -->
       <button
-        v-if="type === 'Tertiary'"
+        v-if="(type === 'Tertiary' || added) && permissionControl"
         ref="permBtnRef"
         type="button"
         class="share-item__btn share-item__btn--permission"
@@ -44,9 +60,23 @@
         <IconChevronDown />
       </button>
 
+      <!-- Delete icon button — revealed on row hover (Share dialog) -->
+      <button
+        v-else-if="deletable"
+        type="button"
+        class="share-item__delete"
+        aria-label="Remove from list"
+        @click.stop="emit('remove')"
+      >
+        <IconTrash />
+      </button>
+
+      <!-- Already-added search result (no permission control) -->
+      <span v-else-if="added" class="share-item__added">Already added</span>
+
       <!-- Secondary: outlined Add button -->
       <button
-        v-else
+        v-else-if="type === 'Secondary' && !added"
         type="button"
         class="share-item__btn share-item__btn--add"
         @click="emit('add')"
@@ -55,6 +85,15 @@
       </button>
     </div>
   </div>
+
+  <!-- Sub-text tooltip — only shown when text is truncated -->
+  <Teleport to="body">
+    <div
+      v-if="tooltipVisible"
+      class="share-tooltip"
+      :style="tooltipStyle"
+    >{{ subText }}</div>
+  </Teleport>
 
   <!-- Permission dropdown — teleported to body to escape overflow clipping -->
   <Teleport to="body">
@@ -99,9 +138,9 @@
 <script setup>
 import { ref, nextTick } from 'vue'
 import AvatarItem      from './AvatarItem.vue'
-import RadioButton     from './RadioButton.vue'
 import IconChevronDown from './icons/IconChevronDown.vue'
 import IconCheck       from './icons/IconCheck.vue'
+import IconTrash       from './icons/IconTrash.vue'
 
 const PERMISSIONS = ['Read/display', 'Write/modify', 'Full access', 'Custom']
 
@@ -111,20 +150,36 @@ defineProps({
     default: 'Secondary',
     validator: v => ['Tertiary', 'Secondary'].includes(v),
   },
-  state: {
-    type: String,
-    default: 'Default',
-    validator: v => ['Default', 'Hover', 'Selected'].includes(v),
-  },
-  name:       { type: String, default: 'Name' },
-  subText:    { type: String, default: '' },
-  tag:        { type: String, default: null },
-  permission: { type: String, default: 'Read/display' },
-  avatarType: { type: String, default: 'User' },
-  avatarSrc:  { type: String, default: '' },
+  selected:   { type: Boolean, default: false },
+  added:      { type: Boolean, default: false },
+  advanced:   { type: Boolean, default: false },
+  permissionControl: { type: Boolean, default: true },
+  deletable:  { type: Boolean, default: false },
+  name:       { type: String,  default: 'Name' },
+  subText:    { type: String,  default: '' },
+  tag:        { type: String,  default: null },
+  permission: { type: String,  default: 'Read/display' },
+  avatarType: { type: String,  default: 'User' },
+  avatarSrc:  { type: String,  default: '' },
 })
 
 const emit = defineEmits(['select', 'add', 'update:permission', 'remove'])
+
+// ── Sub-text truncation tooltip ──
+const subRef        = ref(null)
+const tooltipVisible = ref(false)
+const tooltipStyle  = ref({})
+
+function onSubHover() {
+  const el = subRef.value
+  if (!el || el.scrollWidth <= el.clientWidth) return
+  const rect = el.getBoundingClientRect()
+  tooltipStyle.value = {
+    left: `${rect.left + rect.width / 2}px`,
+    top:  `${rect.top - 8}px`,
+  }
+  tooltipVisible.value = true
+}
 
 // ── Dropdown ──
 const showDropdown  = ref(false)
@@ -171,9 +226,32 @@ function removeRecipient() {
 }
 
 .share-item--tertiary:hover,
-.share-item--hover,
 .share-item--selected {
   background: #f5f5f5;
+}
+
+.share-item--clickable {
+  cursor: pointer;
+}
+
+/* ── Selection checkbox (advanced mode) ── */
+.share-item__checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+  background: #ffffff;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 100ms ease, border-color 100ms ease;
+}
+
+.share-item__checkbox--checked {
+  background: #052474;
+  border-color: #052474;
 }
 
 /* ── Left section ── */
@@ -273,6 +351,38 @@ function removeRecipient() {
 .share-item__btn--add:hover {
   background: var(--color-brand-50);
 }
+
+/* Delete icon button — hidden until the row is hovered/focused */
+.share-item__delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: #d3200e;
+  opacity: 0;
+  transition: opacity var(--transition-default), background var(--transition-default);
+  cursor: pointer;
+}
+
+.share-item:hover .share-item__delete,
+.share-item__delete:focus-visible {
+  opacity: 1;
+}
+
+.share-item__delete:hover {
+  background: #e5e5e5;
+}
+
+/* "Already added" label (search results, Share dialog) */
+.share-item__added {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  color: var(--color-neutral-500);
+  white-space: nowrap;
+}
 </style>
 
 <!-- Dropdown is teleported to <body> — must be unscoped -->
@@ -340,6 +450,24 @@ function removeRecipient() {
   height: 24px;
   flex-shrink: 0;
   color: #052474;
+}
+
+/* ── Sub-text truncation tooltip ── */
+.share-tooltip {
+  position: fixed;
+  z-index: 300;
+  transform: translate(-50%, -100%);
+  background: #212121;
+  color: #ffffff;
+  font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
 }
 
 /* ── Divider ── */
