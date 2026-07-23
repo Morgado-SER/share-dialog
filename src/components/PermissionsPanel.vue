@@ -44,10 +44,13 @@
             <button
               type="button"
               class="perm-checkbox"
-              :class="{ 'perm-checkbox--checked': perm.allow }"
+              :class="{
+                'perm-checkbox--checked': perm.allow === 'all',
+                'perm-checkbox--partial': perm.allow === 'some',
+              }"
               @click="emit('toggle', perm.id, 'allow')"
             >
-              <svg v-if="perm.allow" width="10" height="8" viewBox="0 0 10 8" fill="none">
+              <svg v-if="perm.allow !== 'none'" width="10" height="8" viewBox="0 0 10 8" fill="none">
                 <path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
@@ -56,10 +59,13 @@
             <button
               type="button"
               class="perm-checkbox"
-              :class="{ 'perm-checkbox--checked': perm.deny }"
+              :class="{
+                'perm-checkbox--checked': perm.deny === 'all',
+                'perm-checkbox--partial': perm.deny === 'some',
+              }"
               @click="emit('toggle', perm.id, 'deny')"
             >
-              <svg v-if="perm.deny" width="10" height="8" viewBox="0 0 10 8" fill="none">
+              <svg v-if="perm.deny !== 'none'" width="10" height="8" viewBox="0 0 10 8" fill="none">
                 <path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
@@ -68,10 +74,13 @@
             <button
               type="button"
               class="perm-checkbox"
-              :class="{ 'perm-checkbox--checked': perm.delegate }"
+              :class="{
+                'perm-checkbox--checked': perm.delegate === 'all',
+                'perm-checkbox--partial': perm.delegate === 'some',
+              }"
               @click="emit('toggle', perm.id, 'delegate')"
             >
-              <svg v-if="perm.delegate" width="10" height="8" viewBox="0 0 10 8" fill="none">
+              <svg v-if="perm.delegate !== 'none'" width="10" height="8" viewBox="0 0 10 8" fill="none">
                 <path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
@@ -144,18 +153,20 @@ function toggleSort(col) {
   }
 }
 
+// Permission columns hold a three-way state; rank them so asc = most-granted first
+const STATE_RANK = { all: 0, some: 1, none: 2 }
+
 const sortedPermissions = computed(() => {
   if (!sortCol.value) return props.permissions
   return [...props.permissions].sort((a, b) => {
     let av = a[sortCol.value]
     let bv = b[sortCol.value]
-    if (typeof av === 'boolean') {
-      // asc = checked first (true → 0, false → 1)
-      av = av ? 0 : 1
-      bv = bv ? 0 : 1
-    } else {
+    if (sortCol.value === 'name') {
       av = av.toLowerCase()
       bv = bv.toLowerCase()
+    } else {
+      av = STATE_RANK[av] ?? 3
+      bv = STATE_RANK[bv] ?? 3
     }
     if (av < bv) return sortDir.value === 'asc' ? -1 : 1
     if (av > bv) return sortDir.value === 'asc' ? 1 : -1
@@ -344,5 +355,11 @@ const sortedPermissions = computed(() => {
 .perm-checkbox--checked {
   background: #052474;
   border-color: #052474;
+}
+
+/* Partial — checked for some, but not all, selected recipients */
+.perm-checkbox--partial {
+  background: #d9d9d9;
+  border-color: #d9d9d9;
 }
 </style>

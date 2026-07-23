@@ -219,8 +219,11 @@ const selectedRecipients = computed(() =>
 )
 const selectedNames = computed(() => selectedRecipients.value.map(r => r.name))
 
-// Combined permissions across all selected recipients: a cell is checked only
-// when it is checked for every selected recipient (the shared baseline).
+// Combined permissions across all selected recipients. Each cell resolves to a
+// three-way state so the combination is visible:
+//   'all'  → every selected recipient has it   (blue checkbox)
+//   'some' → only some recipients have it       (grey checkbox)
+//   'none' → no selected recipient has it       (empty checkbox)
 // Toggling a cell (togglePermission) then applies to all selected recipients.
 const combinedPermissions = computed(() => {
   const sel = selectedRecipients.value
@@ -228,10 +231,11 @@ const combinedPermissions = computed(() => {
   return sel[0].customPerms.map(row => {
     const merged = { id: row.id, name: row.name }
     for (const col of ['allow', 'deny', 'delegate']) {
-      merged[col] = sel.every(r => {
+      const on = sel.filter(r => {
         const p = r.customPerms.find(x => x.id === row.id)
         return !!(p && p[col])
-      })
+      }).length
+      merged[col] = on === 0 ? 'none' : on === sel.length ? 'all' : 'some'
     }
     return merged
   })
@@ -328,11 +332,12 @@ function updatePermission(id, permission) {
   }
 }
 
-// Toggle a permission cell for every currently-selected recipient at once
+// Toggle a permission cell for every currently-selected recipient at once.
+// 'all' → turn off for everyone; 'some'/'none' → turn on for everyone.
 function togglePermission(permId, column) {
   const current = combinedPermissions.value.find(p => p.id === permId)
   if (!current) return
-  const newVal = !current[column]
+  const newVal = current[column] !== 'all'
   for (const r of selectedRecipients.value) {
     const p = r.customPerms.find(x => x.id === permId)
     if (p) p[column] = newVal
