@@ -35,7 +35,9 @@ Invite people **and** manage granular permissions. Width **488px**, expands to *
 - The link is **disabled until at least one recipient exists**; hovering it while disabled shows a tooltip
   ("Please add recipients to get access to advanced options").
 - Recipients get **checkboxes** in advanced mode. Selecting **multiple** recipients shows their
-  **combined** permissions and edits apply to all of them at once — see [Combine semantics](#combine-semantics).
+  **combined** permissions and edits apply to all of them at once. Each cell is three-state so the
+  combination is visible — blue (all have it), grey (some have it), empty (none) — see
+  [Combine semantics](#combine-semantics).
 - Deselecting everyone shows the table's **empty state** ("No recipients selected").
 
 ---
@@ -90,12 +92,15 @@ dropdown lists `['Read/display', 'Write/modify', 'Full access', 'Custom']`.
 ```
 Props:
   selectedNames: String[]   // names of selected recipients (drives the title + empty state)
-  permissions:   Array      // combined permission rows to render (see below)
+  permissions:   Array      // combined rows; each cell is a state string, not a boolean:
+                            //   { id, name, allow, deny, delegate } where
+                            //   allow/deny/delegate ∈ 'all' | 'some' | 'none'
 
 Events:
   toggle(permId, column)    // a checkbox was toggled; column ∈ 'allow' | 'deny' | 'delegate'
 ```
-The panel is **presentational** — it does not mutate data. It emits `toggle`, and the parent
+The panel is **presentational** — it does not mutate data. It renders each cell in one of three
+states (blue = `'all'`, grey = `'some'`, empty = `'none'`), emits `toggle`, and the parent
 (`RightsDialog`) applies the change to every selected recipient.
 
 ---
@@ -109,11 +114,21 @@ The panel is **presentational** — it does not mutate data. It emits `toggle`, 
   and `getPermissionTemplate(level)` which returns rows as `{ id, name, allow, deny, delegate }`.
 
 ### Combine semantics
-When multiple recipients are selected in Rights, `RightsDialog` computes `combinedPermissions`:
-a cell is shown **checked only if it is checked for _every_ selected recipient** (the shared
-baseline / intersection). Toggling a cell writes that new value to **all** selected recipients.
-> This is a product decision worth confirming. Alternatives are a union (checked if _any_ has it)
-> or a tri-state "mixed" indicator — the design didn't specify, so intersection + bulk-write was chosen.
+When multiple recipients are selected in Rights, `RightsDialog` computes `combinedPermissions`.
+For each cell it counts how many selected recipients have that permission and resolves to a
+**three-way state** so the combination is visible in the table:
+
+| State | Meaning | Checkbox |
+| --- | --- | --- |
+| `'all'`  | every selected recipient has it | blue (`#052474`), white check |
+| `'some'` | only some recipients have it    | grey (`#D9D9D9`), white check |
+| `'none'` | no selected recipient has it    | empty (white, `#ddd` border) |
+
+**Toggling** a cell applies to **all** selected recipients at once:
+- `'all'` → turn the permission **off** for everyone
+- `'some'` or `'none'` → turn it **on** for everyone
+
+With a single recipient selected a cell is only ever `'all'` or `'none'` (never grey).
 
 ### Permission presets
 Switching a recipient to `Read/display` / `Write/modify` / `Full access` overwrites their table
@@ -128,7 +143,8 @@ What must be replaced/wired when building this for real:
 
 - [ ] **Search** — replace `searchMockData()` with the real people/groups/units/roles search API (debounced).
 - [ ] **Permission model** — replace `mockPermissions.js` rows, level presets, and the Allow/Deny/Delegate
-      shape with the real rights model. Confirm the [combine semantics](#combine-semantics).
+      shape with the real rights model. The [combine semantics](#combine-semantics) (all/some/none)
+      must be recomputed server-side or from the real per-recipient grants.
 - [ ] **`done` event** — persist the recipients + their permissions (the prototype only holds state in memory).
 - [ ] **`add` / `remove` / `update:permission`** — wire to create/update/delete access grants (optimistic vs. server-confirmed?).
 - [ ] **`itemName`** — pass the real object name; the title reads `Rights for <itemName>` / `Share <itemName>`.
@@ -142,7 +158,7 @@ What must be replaced/wired when building this for real:
 
 - **Tokens:** `src/styles/tokens.css` (colours, spacing, radii, typography, shadows). Prefer these over
   raw hex — a few one-off hex values remain in components where a token didn't exist (e.g. `#e5e5e5`
-  hover, `#d3200e` delete red) and should map to real tokens on integration.
+  hover, `#d3200e` delete red, `#d9d9d9` partial checkbox) and should map to real tokens on integration.
 - **Brand:** WebCube primary `#052474`.
 - **Font:** self-hosted **Figtree** variable font (`src/styles/`), weights 400/500/600/700.
 
@@ -158,13 +174,14 @@ File: `WebCube NEW Dialogs & Controls` (`MVZoWd5ixOh3dF5QUUEOgU`). Key frames:
 | Permissions table — empty state | `29585-3750` |
 | Recipient row — delete on hover | `29620-4850` |
 | Search result — "Already added" | `29621-4925` |
+| Partial (grey) checkbox — combined state | `29625-5575` |
 
 ---
 
 ## 7. Known limitations / decisions
 
 - **In-memory only** — nothing persists; reload resets the dialog.
-- **Combine = intersection + bulk-write** (see above) — confirm with product.
+- **Combine = three-state (all/some/none) + bulk-write** (see [Combine semantics](#combine-semantics)).
 - **`Custom` in Share** — the shared `ShareItem` dropdown still lists `Custom`, but the Share dialog
   hides the dropdown entirely, so it's not reachable there.
 - **`RadioButton.vue`** is no longer used by either dialog (selection moved to checkboxes) but is kept

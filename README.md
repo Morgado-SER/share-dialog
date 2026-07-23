@@ -35,7 +35,7 @@ The full variant for fine-grained access control.
 
 - Each recipient has a **permission dropdown**: *Read/display*, *Write/modify*, *Full access*, or *Custom* — each preset fills the permissions table accordingly.
 - **Show advanced options** expands the dialog to reveal a per-permission **table** (Allow / Deny / Delegate) with sortable columns and truncation tooltips.
-- **Multi-select checkboxes** let you pick several recipients at once; the table then shows their **combined** permissions (the shared baseline), and edits apply to everyone selected.
+- **Multi-select checkboxes** let you pick several recipients at once; the table then shows their **combined** permissions — each cell is checked (all selected have it), **grey** (only some have it), or empty (none) — and edits apply to everyone selected.
 - Deselect everyone to see the table's empty state; the link toggles back to **Hide advanced options** to collapse.
 
 ## Tech
