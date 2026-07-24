@@ -130,17 +130,56 @@
       </section>
 
     </main>
+
+    <!-- Source reference — which files build the current screen -->
+    <footer class="prototype-source">
+      <span class="prototype-source__label">Source on GitHub:</span>
+      <a
+        v-for="file in currentSource"
+        :key="file"
+        class="prototype-source__link"
+        :href="`${REPO_BLOB}/${file}`"
+        target="_blank"
+        rel="noopener noreferrer"
+      >{{ file.split('/').pop() }}</a>
+    </footer>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import ShareDialog  from './components/ShareDialog.vue'
 import RightsDialog from './components/RightsDialog.vue'
 import AvatarItem   from './components/AvatarItem.vue'
 import ShareItem    from './components/ShareItem.vue'
 
 const view = ref('rights')
+
+// Direct links to the source files behind each screen, for developers
+const REPO_BLOB = 'https://github.com/Morgado-SER/share-dialog/blob/main'
+
+const SOURCE_FILES = {
+  share: [
+    'src/components/ShareDialog.vue',
+    'src/components/ShareItem.vue',
+    'src/components/AvatarItem.vue',
+    'src/data/mockSearchData.js',
+  ],
+  rights: [
+    'src/components/RightsDialog.vue',
+    'src/components/PermissionsPanel.vue',
+    'src/components/ShareItem.vue',
+    'src/components/AvatarItem.vue',
+    'src/data/mockPermissions.js',
+  ],
+  components: [
+    'src/App.vue',
+    'src/components/AvatarItem.vue',
+    'src/components/ShareItem.vue',
+  ],
+}
+
+const currentSource = computed(() => SOURCE_FILES[view.value])
 
 function handleClose()      { console.log('Dialog closed') }
 function handleCancel()     { console.log('Cancelled') }
@@ -308,5 +347,41 @@ function handleAdd(result)  { console.log('Added:', result.name) }
   color: #c3c3c3;
   text-decoration-color: transparent;
   cursor: not-allowed;
+}
+
+/* ── Source reference bar ── */
+.prototype-source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-neutral-800);
+  border-top: 1px solid var(--color-neutral-700);
+  flex-shrink: 0;
+}
+
+.prototype-source__label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+}
+
+.prototype-source__link {
+  font-size: var(--text-xs);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--color-brand-300);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: rgba(5, 36, 116, 0.4);
+  text-decoration: none;
+  transition: color var(--transition-default), background var(--transition-default);
+}
+
+.prototype-source__link:hover {
+  color: var(--color-neutral-0);
+  background: var(--color-brand-600);
 }
 </style>
