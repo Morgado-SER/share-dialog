@@ -375,10 +375,11 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   background: var(--color-neutral-0);
   border: 1px solid #dddddd;
   border-radius: var(--radius-lg);
+  /* Compact elevation — the dropdown sits inside the modal, so it only needs
+     to lift off the dialog surface, not cast the modal's full page shadow */
   box-shadow:
-    0 6.65px 5.586px rgba(0, 0, 0, 0.02),
-    0 22.336px 18.762px rgba(0, 0, 0, 0.03),
-    0 100px 84px rgba(0, 0, 0, 0.05);
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.06);
   scrollbar-width: thin;
   scrollbar-color: #dddddd transparent;
 }
