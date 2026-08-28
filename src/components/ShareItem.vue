@@ -76,7 +76,7 @@
 
       <!-- Secondary: outlined Add button -->
       <button
-        v-else-if="type === 'Secondary' && !added"
+        v-else-if="type === 'Secondary' && !added && !hideAction"
         type="button"
         class="share-item__btn share-item__btn--add"
         @click="emit('add')"
@@ -155,6 +155,7 @@ defineProps({
   advanced:   { type: Boolean, default: false },
   permissionControl: { type: Boolean, default: true },
   deletable:  { type: Boolean, default: false },
+  hideAction: { type: Boolean, default: false },
   name:       { type: String,  default: 'Name' },
   subText:    { type: String,  default: '' },
   tag:        { type: String,  default: null },
