@@ -29,63 +29,107 @@
     <!-- ── Body: search + results ── -->
     <div class="share-dialog__body">
 
-      <!-- Search field — results appear in a dropdown anchored to the input -->
-      <div class="share-dialog__search">
-        <label :for="inputId" class="share-dialog__label">
-          Search people, groups, units, or roles
-        </label>
+      <!-- Search bar: field (with inline permissions) + Invite button -->
+      <div class="invite-searchbar">
 
-        <div ref="searchWrapRef" class="invite-search">
-          <input
-            :id="inputId"
-            v-model="searchQuery"
-            type="text"
-            class="share-dialog__input"
-            :class="{ 'share-dialog__input--active': searchQuery.length > 0 }"
-            placeholder="Search by name or email"
-            autocomplete="off"
-            role="combobox"
-            aria-autocomplete="list"
-            :aria-expanded="dropdownOpen"
-            @focus="dropdownOpen = searchQuery.length > 0"
-            @keydown.esc="dropdownOpen = false"
-          />
+        <div class="invite-searchbar__field">
+          <label :for="inputId" class="share-dialog__label">
+            Search people, groups, units, roles, or enter an email
+          </label>
 
-          <!-- Results dropdown -->
-          <div
-            v-if="dropdownOpen"
-            class="invite-dropdown"
-            role="listbox"
-            aria-live="polite"
-          >
-            <button
-              v-for="result in searchResults"
-              :key="result.id"
-              type="button"
-              class="invite-dropdown__option"
-              :class="{ 'invite-dropdown__option--disabled': result.added }"
-              role="option"
-              :aria-selected="false"
-              :disabled="result.added"
-              @click="handleAdd(result)"
+          <div ref="searchWrapRef" class="invite-search">
+            <input
+              :id="inputId"
+              v-model="searchQuery"
+              type="text"
+              class="share-dialog__input invite-input"
+              :class="{ 'share-dialog__input--active': searchQuery.length > 0 }"
+              placeholder="Search by name or email"
+              autocomplete="off"
+              role="combobox"
+              aria-autocomplete="list"
+              :aria-expanded="showDropdown"
+              @focus="dropdownOpen = true"
+              @keydown.esc="dropdownOpen = false"
+            />
+
+            <!-- Inline permissions control — enabled once the user types -->
+            <div class="invite-perm">
+              <button
+                type="button"
+                class="invite-perm__trigger"
+                :class="{ 'invite-perm__trigger--disabled': !permissionsEnabled }"
+                :disabled="!permissionsEnabled"
+                :aria-expanded="permMenuOpen"
+                @click.stop="permMenuOpen = !permMenuOpen"
+              >
+                <span>{{ permission }}</span>
+                <IconChevronDown />
+              </button>
+
+              <div v-if="permMenuOpen" class="invite-perm__menu" role="listbox">
+                <button
+                  v-for="perm in INVITE_PERMISSIONS"
+                  :key="perm"
+                  type="button"
+                  class="invite-perm__option"
+                  :class="{ 'invite-perm__option--active': perm === permission }"
+                  role="option"
+                  :aria-selected="perm === permission"
+                  @click.stop="selectPermission(perm)"
+                >
+                  <span>{{ perm }}</span>
+                  <IconCheck v-if="perm === permission" class="invite-perm__check" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Results dropdown — hidden once the search stops matching,
+                 so the user is left typing just the email address -->
+            <div
+              v-if="showDropdown"
+              class="invite-dropdown"
+              role="listbox"
+              aria-live="polite"
             >
-              <ShareItem
-                type="Secondary"
-                :name="result.name"
-                :sub-text="result.subText"
-                :tag="result.tag"
-                :avatar-type="result.avatarType"
-                :avatar-src="result.avatarSrc"
-                :added="result.added"
-                :permission-control="false"
-                :hide-action="!result.added"
-              />
-            </button>
-
-            <p v-if="searchResults.length === 0" class="invite-dropdown__empty">
-              No results for "{{ searchQuery }}"
-            </p>
+              <button
+                v-for="result in searchResults"
+                :key="result.id"
+                type="button"
+                class="invite-dropdown__option"
+                :class="{ 'invite-dropdown__option--disabled': result.added }"
+                role="option"
+                :aria-selected="false"
+                :disabled="result.added"
+                @click="handleAdd(result)"
+              >
+                <ShareItem
+                  type="Secondary"
+                  :name="result.name"
+                  :sub-text="result.subText"
+                  :tag="result.tag"
+                  :avatar-type="result.avatarType"
+                  :avatar-src="result.avatarSrc"
+                  :added="result.added"
+                  :permission-control="false"
+                  :hide-action="!result.added"
+                />
+              </button>
+            </div>
           </div>
+        </div>
+
+        <!-- Invite button — enabled once the typed email looks complete -->
+        <div class="invite-searchbar__action">
+          <button
+            type="button"
+            class="invite-btn"
+            :class="{ 'invite-btn--disabled': !canInvite }"
+            :disabled="!canInvite"
+            @click="handleInvite"
+          >
+            Invite
+          </button>
         </div>
       </div>
 
@@ -158,10 +202,14 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
-import IconClose from './icons/IconClose.vue'
-import IconUser  from './icons/IconUser.vue'
+import IconClose        from './icons/IconClose.vue'
+import IconUser         from './icons/IconUser.vue'
+import IconCheck        from './icons/IconCheck.vue'
+import IconChevronDown  from './icons/IconChevronDown.vue'
 import ShareItem from './ShareItem.vue'
 import { searchMockData } from '../data/mockSearchData.js'
+
+const INVITE_PERMISSIONS = ['Read', 'Write', 'Full access']
 
 const props = defineProps({
   itemName: {
@@ -187,11 +235,27 @@ watch(searchQuery, q => { dropdownOpen.value = q.length > 0 })
 function onDocumentClick(e) {
   if (searchWrapRef.value && !searchWrapRef.value.contains(e.target)) {
     dropdownOpen.value = false
+    permMenuOpen.value = false
   }
 }
 
 onMounted(()       => document.addEventListener('click', onDocumentClick))
 onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick))
+
+// ── Inline permissions control ──
+const permission   = ref(INVITE_PERMISSIONS[0])
+const permMenuOpen = ref(false)
+
+// Enabled as soon as the user starts typing
+const permissionsEnabled = computed(() => searchQuery.value.trim().length > 0)
+
+function selectPermission(perm) {
+  permission.value = perm
+  permMenuOpen.value = false
+}
+
+// Close the menu (and reset) if the field is cleared
+watch(permissionsEnabled, on => { if (!on) permMenuOpen.value = false })
 
 // Show all matches; mark the ones already added so they render with the
 // permission control instead of the Add button
@@ -205,6 +269,34 @@ const searchResults = computed(() => {
     }
   })
 })
+
+// ── Invite by email ──
+// The dropdown disappears once the search stops matching anything, leaving the
+// user to finish typing the email address.
+const showDropdown = computed(() => dropdownOpen.value && searchResults.value.length > 0)
+
+// Enabled as soon as the address reaches the TLD — e.g. "johndoe@doxis.c"
+const canInvite = computed(() =>
+  /^[^\s@]+@[^\s@]+\.[A-Za-z]+$/.test(searchQuery.value.trim())
+)
+
+function handleInvite() {
+  if (!canInvite.value) return
+  const email = searchQuery.value.trim()
+  recipients.value.push({
+    id: `invite-${email}`,
+    name: email,
+    subText: '',
+    tag: null,
+    avatarType: 'User',
+    avatarSrc: '',
+    permission: permission.value,
+    invited: true,
+  })
+  searchQuery.value = ''
+  permission.value = INVITE_PERMISSIONS[0]
+  emit('add', { name: email, invited: true })
+}
 
 function checkOverflow(el) {
   if (!el) return
@@ -223,9 +315,10 @@ watch([searchResults, recipients], () => {
 function handleAdd(result) {
   recipients.value.push({
     ...result,
-    permission: 'Read/display',
+    permission: permission.value,
   })
   searchQuery.value = ''
+  permission.value = INVITE_PERMISSIONS[0]
   emit('add', result)
 }
 
@@ -313,14 +406,6 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 }
 
 /* ── Search field ── */
-.share-dialog__search {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 0 20px 8px;
-  flex-shrink: 0;
-}
-
 .share-dialog__label {
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
@@ -355,9 +440,156 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   box-shadow: 0 0 0 3px rgba(5, 36, 116, 0.12);
 }
 
+/* ── Search bar row: field + Invite button ── */
+.invite-searchbar {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 0 20px 8px;
+  flex-shrink: 0;
+}
+
+.invite-searchbar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 0 0;
+  min-width: 0;
+}
+
+/* Pushes the button below the label so it lines up with the input */
+.invite-searchbar__action {
+  padding-top: 26px;
+  flex-shrink: 0;
+}
+
+/* ── Invite button ── */
+.invite-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  min-width: 64px;
+  padding: 0 12px;
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  background: var(--color-brand-600);
+  color: var(--color-neutral-0);
+  cursor: pointer;
+  transition: background var(--transition-default), color var(--transition-default);
+}
+
+.invite-btn:hover {
+  background: var(--color-brand-700);
+}
+
+.invite-btn--disabled,
+.invite-btn--disabled:hover {
+  background: #f0f0f0;
+  color: #c3c3c3;
+  cursor: not-allowed;
+}
+
 /* ── Results dropdown (anchored to the search input) ── */
 .invite-search {
   position: relative;
+}
+
+/* Room for the inline permissions control */
+.invite-input {
+  padding-right: 116px;
+}
+
+/* ── Inline permissions control (inside the input) ── */
+.invite-perm {
+  position: absolute;
+  top: 50%;
+  right: 3px;
+  transform: translateY(-50%);
+  /* transform creates a stacking context, so the wrapper itself must sit
+     above the results dropdown for its menu to be visible */
+  z-index: 30;
+}
+
+.invite-perm__trigger {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 28px;
+  padding: 0 6px 0 8px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  color: var(--color-brand-600);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--transition-default), color var(--transition-default);
+}
+
+.invite-perm__trigger:hover {
+  background: #e5e5e5;
+}
+
+.invite-perm__trigger--disabled,
+.invite-perm__trigger--disabled:hover {
+  color: #c3c3c3;
+  background: transparent;
+  cursor: not-allowed;
+}
+
+.invite-perm__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  background: var(--color-neutral-0);
+  border: 1px solid #dddddd;
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.invite-perm__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-normal);
+  line-height: 1;
+  color: var(--color-neutral-700);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--transition-default);
+}
+
+.invite-perm__option:hover {
+  background: #f5f5f5;
+}
+
+.invite-perm__option--active {
+  background: #f3f4f8;
+  color: var(--color-brand-600);
+  font-weight: var(--weight-medium);
+}
+
+.invite-perm__check {
+  flex-shrink: 0;
+  color: var(--color-brand-600);
 }
 
 .invite-dropdown {
@@ -409,13 +641,6 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 .invite-dropdown__option--disabled:hover {
   background: transparent;
   cursor: default;
-}
-
-.invite-dropdown__empty {
-  padding: 16px 10px;
-  font-size: var(--text-sm);
-  color: var(--color-neutral-400);
-  text-align: center;
 }
 
 /* ── Scrollable results / shared-with container ── */
