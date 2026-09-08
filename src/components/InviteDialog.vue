@@ -159,7 +159,6 @@
               :avatar-src="recipient.avatarSrc"
               :permission="recipient.permission"
               :permission-options="INVITE_PERMISSIONS"
-              :deletable="true"
               @update:permission="updatePermission(recipient.id, $event)"
               @remove="removeRecipient(recipient.id)"
             />
