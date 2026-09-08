@@ -52,8 +52,9 @@
               role="combobox"
               aria-autocomplete="list"
               :aria-expanded="showDropdown"
-              @focus="dropdownOpen = true"
-              @keydown.esc="dropdownOpen = false"
+              @focus="openResults"
+              @click="openResults"
+              @keydown.esc="closeAllMenus"
             />
 
             <!-- Inline permissions control — only shown while searching for an
@@ -231,14 +232,21 @@ const recipients  = ref([])
 const dropdownOpen  = ref(false)
 const searchWrapRef = ref(null)
 
-// Typing opens the dropdown; clearing the query closes it
-watch(searchQuery, q => { dropdownOpen.value = q.length > 0 })
+// Typing opens the results list (and never leaves the permissions menu open)
+watch(searchQuery, q => {
+  dropdownOpen.value = q.length > 0
+  permMenuOpen.value = false
+})
 
 function onDocumentClick(e) {
   if (searchWrapRef.value && !searchWrapRef.value.contains(e.target)) {
-    dropdownOpen.value = false
-    permMenuOpen.value = false
+    closeAllMenus()
   }
+}
+
+function closeAllMenus() {
+  dropdownOpen.value = false
+  permMenuOpen.value = false
 }
 
 onMounted(()       => document.addEventListener('click', onDocumentClick))
@@ -248,11 +256,17 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick))
 const permission   = ref(INVITE_PERMISSIONS[0])
 const permMenuOpen = ref(false)
 
-// Opening the permissions menu closes the results list, so the two dropdowns
-// never overlap. The typed query is left untouched.
+// Only one menu is ever open. Opening the permissions menu closes the results
+// list; clicking/focusing the input closes the permissions menu and brings the
+// results back. The typed query is left untouched either way.
 function togglePermMenu() {
   permMenuOpen.value = !permMenuOpen.value
   if (permMenuOpen.value) dropdownOpen.value = false
+}
+
+function openResults() {
+  dropdownOpen.value = true
+  permMenuOpen.value = false
 }
 
 function selectPermission(perm) {
