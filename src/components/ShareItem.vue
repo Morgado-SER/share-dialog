@@ -60,9 +60,10 @@
         <IconChevronDown />
       </button>
 
-      <!-- Delete icon button — revealed on row hover (Share dialog) -->
+      <!-- Delete icon button — revealed on row hover; may sit alongside the
+           permission control (Invite dialog) -->
       <button
-        v-else-if="deletable"
+        v-if="deletable"
         type="button"
         class="share-item__delete"
         aria-label="Remove from list"
@@ -72,11 +73,11 @@
       </button>
 
       <!-- Already-added search result (no permission control) -->
-      <span v-else-if="added" class="share-item__added">Already added</span>
+      <span v-if="added && !permissionControl && !deletable" class="share-item__added">Already added</span>
 
       <!-- Secondary: outlined Add button -->
       <button
-        v-else-if="type === 'Secondary' && !added && !hideAction"
+        v-if="type === 'Secondary' && !added && !hideAction && !deletable"
         type="button"
         class="share-item__btn share-item__btn--add"
         @click="emit('add')"
@@ -106,7 +107,7 @@
       <!-- Permission options -->
       <div class="perm-dropdown__options">
         <button
-          v-for="perm in PERMISSIONS"
+          v-for="perm in permissionOptions"
           :key="perm"
           type="button"
           class="perm-dropdown__option"
@@ -118,19 +119,20 @@
         </button>
       </div>
 
-      <!-- Divider -->
-      <div class="perm-dropdown__divider" />
+      <!-- Remove — omitted when the row already has a delete icon -->
+      <template v-if="!deletable">
+        <div class="perm-dropdown__divider" />
 
-      <!-- Remove — own row container, same structure as permissions block -->
-      <div class="perm-dropdown__remove-container">
-        <button
-          type="button"
-          class="perm-dropdown__remove"
-          @click="removeRecipient"
-        >
-          Remove
-        </button>
-      </div>
+        <div class="perm-dropdown__remove-container">
+          <button
+            type="button"
+            class="perm-dropdown__remove"
+            @click="removeRecipient"
+          >
+            Remove
+          </button>
+        </div>
+      </template>
     </div>
   </Teleport>
 </template>
@@ -142,7 +144,6 @@ import IconChevronDown from './icons/IconChevronDown.vue'
 import IconCheck       from './icons/IconCheck.vue'
 import IconTrash       from './icons/IconTrash.vue'
 
-const PERMISSIONS = ['Read/display', 'Write/modify', 'Full access', 'Custom']
 
 defineProps({
   type: {
@@ -154,6 +155,11 @@ defineProps({
   added:      { type: Boolean, default: false },
   advanced:   { type: Boolean, default: false },
   permissionControl: { type: Boolean, default: true },
+  // Default list; dialogs may pass their own (e.g. Invite uses short labels)
+  permissionOptions: {
+    type: Array,
+    default: () => ['Read/display', 'Write/modify', 'Full access', 'Custom'],
+  },
   deletable:  { type: Boolean, default: false },
   hideAction: { type: Boolean, default: false },
   name:       { type: String,  default: 'Name' },
@@ -316,6 +322,9 @@ function removeRecipient() {
 
 /* ── Action buttons ── */
 .share-item__action {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 0;
 }
 

@@ -157,8 +157,10 @@
               :tag="recipient.tag"
               :avatar-type="recipient.avatarType"
               :avatar-src="recipient.avatarSrc"
-              :permission-control="false"
+              :permission="recipient.permission"
+              :permission-options="INVITE_PERMISSIONS"
               :deletable="true"
+              @update:permission="updatePermission(recipient.id, $event)"
               @remove="removeRecipient(recipient.id)"
             />
           </li>
@@ -325,6 +327,11 @@ function handleAdd(result) {
   searchQuery.value = ''
   permission.value = INVITE_PERMISSIONS[0]
   emit('add', result)
+}
+
+function updatePermission(id, perm) {
+  const r = recipients.value.find(r => r.id === id)
+  if (r) r.permission = perm
 }
 
 function removeRecipient(id) {
