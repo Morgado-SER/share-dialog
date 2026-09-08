@@ -42,8 +42,11 @@
               :id="inputId"
               v-model="searchQuery"
               type="text"
-              class="share-dialog__input invite-input"
-              :class="{ 'share-dialog__input--active': searchQuery.length > 0 }"
+              class="share-dialog__input"
+              :class="{
+                'share-dialog__input--active': searchQuery.length > 0,
+                'invite-input--with-perm': showPermission,
+              }"
               placeholder="Search by name or email"
               autocomplete="off"
               role="combobox"
@@ -53,15 +56,14 @@
               @keydown.esc="dropdownOpen = false"
             />
 
-            <!-- Inline permissions control — enabled once the user types -->
-            <div class="invite-perm">
+            <!-- Inline permissions control — only shown while searching for an
+                 internal user (hidden once the query is an external email) -->
+            <div v-if="showPermission" class="invite-perm">
               <button
                 type="button"
                 class="invite-perm__trigger"
-                :class="{ 'invite-perm__trigger--disabled': !permissionsEnabled }"
-                :disabled="!permissionsEnabled"
                 :aria-expanded="permMenuOpen"
-                @click.stop="permMenuOpen = !permMenuOpen"
+                @click.stop="togglePermMenu"
               >
                 <span>{{ permission }}</span>
                 <IconChevronDown />
@@ -119,14 +121,14 @@
           </div>
         </div>
 
-        <!-- Invite button — enabled once the typed email looks complete -->
+        <!-- Invite button — enabled once the typed email looks complete.
+             No action wired up yet, per design review. -->
         <div class="invite-searchbar__action">
           <button
             type="button"
             class="invite-btn"
             :class="{ 'invite-btn--disabled': !canInvite }"
             :disabled="!canInvite"
-            @click="handleInvite"
           >
             Invite
           </button>
@@ -246,16 +248,17 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick))
 const permission   = ref(INVITE_PERMISSIONS[0])
 const permMenuOpen = ref(false)
 
-// Enabled as soon as the user starts typing
-const permissionsEnabled = computed(() => searchQuery.value.trim().length > 0)
+// Opening the permissions menu closes the results list, so the two dropdowns
+// never overlap. The typed query is left untouched.
+function togglePermMenu() {
+  permMenuOpen.value = !permMenuOpen.value
+  if (permMenuOpen.value) dropdownOpen.value = false
+}
 
 function selectPermission(perm) {
   permission.value = perm
   permMenuOpen.value = false
 }
-
-// Close the menu (and reset) if the field is cleared
-watch(permissionsEnabled, on => { if (!on) permMenuOpen.value = false })
 
 // Show all matches; mark the ones already added so they render with the
 // permission control instead of the Add button
@@ -271,32 +274,20 @@ const searchResults = computed(() => {
 })
 
 // ── Invite by email ──
-// The dropdown disappears once the search stops matching anything, leaving the
-// user to finish typing the email address.
-const showDropdown = computed(() => dropdownOpen.value && searchResults.value.length > 0)
+// Once the search stops matching anything the user is typing an external
+// address, so both the results list and the permissions control disappear.
+const hasMatches = computed(() => searchResults.value.length > 0)
+
+const showDropdown  = computed(() => dropdownOpen.value && hasMatches.value)
+const showPermission = computed(() => searchQuery.value.trim().length > 0 && hasMatches.value)
 
 // Enabled as soon as the address reaches the TLD — e.g. "johndoe@doxis.c"
 const canInvite = computed(() =>
   /^[^\s@]+@[^\s@]+\.[A-Za-z]+$/.test(searchQuery.value.trim())
 )
 
-function handleInvite() {
-  if (!canInvite.value) return
-  const email = searchQuery.value.trim()
-  recipients.value.push({
-    id: `invite-${email}`,
-    name: email,
-    subText: '',
-    tag: null,
-    avatarType: 'User',
-    avatarSrc: '',
-    permission: permission.value,
-    invited: true,
-  })
-  searchQuery.value = ''
-  permission.value = INVITE_PERMISSIONS[0]
-  emit('add', { name: email, invited: true })
-}
+// Close the permissions menu whenever its trigger disappears
+watch(showPermission, on => { if (!on) permMenuOpen.value = false })
 
 function checkOverflow(el) {
   if (!el) return
@@ -443,7 +434,8 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 /* ── Search bar row: field + Invite button ── */
 .invite-searchbar {
   display: flex;
-  align-items: flex-start;
+  /* Bottom-align so the button lines up with the input, whatever the label height */
+  align-items: flex-end;
   gap: 6px;
   padding: 0 20px 8px;
   flex-shrink: 0;
@@ -457,9 +449,7 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   min-width: 0;
 }
 
-/* Pushes the button below the label so it lines up with the input */
 .invite-searchbar__action {
-  padding-top: 26px;
   flex-shrink: 0;
 }
 
@@ -497,16 +487,16 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   position: relative;
 }
 
-/* Room for the inline permissions control */
-.invite-input {
-  padding-right: 116px;
+/* Room for the inline permissions control, only while it is shown */
+.invite-input--with-perm {
+  padding-right: 104px;
 }
 
 /* ── Inline permissions control (inside the input) ── */
 .invite-perm {
   position: absolute;
   top: 50%;
-  right: 3px;
+  right: 6px;
   transform: translateY(-50%);
   /* transform creates a stacking context, so the wrapper itself must sit
      above the results dropdown for its menu to be visible */
@@ -517,8 +507,8 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   display: flex;
   align-items: center;
   gap: 2px;
-  height: 28px;
-  padding: 0 6px 0 8px;
+  height: 24px;
+  padding: 0 4px 0 6px;
   border-radius: var(--radius-sm);
   background: transparent;
   font-size: var(--text-sm);
@@ -531,14 +521,7 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 }
 
 .invite-perm__trigger:hover {
-  background: #e5e5e5;
-}
-
-.invite-perm__trigger--disabled,
-.invite-perm__trigger--disabled:hover {
-  color: #c3c3c3;
-  background: transparent;
-  cursor: not-allowed;
+  background: #f0f0f0;
 }
 
 .invite-perm__menu {
