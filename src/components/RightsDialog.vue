@@ -183,7 +183,7 @@
         class="share-dialog__btn share-dialog__btn--primary"
         @click="emit('done')"
       >
-        Done
+        Share
       </button>
       </div>
     </div>
