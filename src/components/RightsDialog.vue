@@ -515,7 +515,9 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 0 20px 8px;
+  /* No bottom padding — what follows (chips / results) owns its own top
+     spacing, so the gap below the input matches the design exactly */
+  padding: 0 20px;
   flex-shrink: 0;
 }
 
