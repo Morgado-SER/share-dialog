@@ -36,6 +36,7 @@
 
     <!-- ── Severity summary ── -->
     <div class="a11y__summary">
+      <span class="a11y__filter-label">Severity</span>
       <button
         v-for="s in severityOrder"
         :key="s"
@@ -56,13 +57,46 @@
         :class="{ 'a11y__stat--muted': filter !== 'all' }"
         :aria-pressed="filter === 'all'"
         @click="filter = 'all'"
-      >Show all</button>
+      >All</button>
 
       <label class="a11y__toggle">
         <input v-model="hideDone" type="checkbox" />
         Hide completed
       </label>
     </div>
+
+    <!-- ── Category summary ── -->
+    <div class="a11y__summary">
+      <span class="a11y__filter-label">Who owns it</span>
+      <button
+        v-for="c in categoryOrder"
+        :key="c"
+        type="button"
+        class="a11y__stat"
+        :class="[`a11y__stat--cat-${c}`, { 'a11y__stat--muted': catFilter !== 'all' && catFilter !== c }]"
+        :aria-pressed="catFilter === c"
+        @click="catFilter = catFilter === c ? 'all' : c"
+      >
+        <span class="a11y__stat-dot" />
+        <span class="a11y__stat-num">{{ remainingByCategory[c] }}</span>
+        <span class="a11y__stat-label">{{ categoryLabel[c] }} left</span>
+      </button>
+
+      <button
+        type="button"
+        class="a11y__stat a11y__stat--all"
+        :class="{ 'a11y__stat--muted': catFilter !== 'all' }"
+        :aria-pressed="catFilter === 'all'"
+        @click="catFilter = 'all'"
+      >All</button>
+    </div>
+
+    <p class="a11y__layout-note">
+      <strong>Layout impact:</strong> none of these change layout or geometry. Every design
+      item is a colour/token change or overlay behaviour — nothing reflows or resizes. The one
+      possible layout risk (fixed heights vs. SC&nbsp;1.4.12 Text Spacing) is unverified and
+      listed under “Not verified” below.
+    </p>
 
     <!-- ── Findings checklist ── -->
     <section
@@ -101,6 +135,9 @@
             <p class="a11y__item-title">{{ f.title }}</p>
 
             <div class="a11y__badges">
+              <span class="a11y__cat" :class="`a11y__cat--${f.category}`">
+                {{ categoryLabel[f.category] }}
+              </span>
               <span class="a11y__sc">{{ f.sc }}</span>
               <span
                 class="a11y__source"
@@ -148,8 +185,16 @@ const STORAGE_KEY = 'share-dialog:a11y-done'
 const severityOrder = ['high', 'medium', 'low']
 const severityLabel = { high: 'High', medium: 'Medium', low: 'Low' }
 
-const filter   = ref('all')
-const hideDone = ref(false)
+const categoryOrder = ['design', 'both', 'engineering']
+const categoryLabel = {
+  design:      'Design',
+  both:        'Design + Eng',
+  engineering: 'Engineering',
+}
+
+const filter    = ref('all')
+const catFilter = ref('all')
+const hideDone  = ref(false)
 
 // Completed ids, persisted so ticks survive a reload
 const done = ref(load())
@@ -189,10 +234,20 @@ const remainingBySeverity = computed(() =>
   }, {})
 )
 
+const remainingByCategory = computed(() =>
+  categoryOrder.reduce((acc, c) => {
+    acc[c] = findings.filter(f => f.category === c && !isDone(f.id)).length
+    return acc
+  }, {})
+)
+
+// Severity grouping for display; the category filter narrows within each group
 const groupedVisible = computed(() =>
   severityOrder.reduce((acc, s) => {
-    acc[s] = findings.filter(
-      f => f.severity === s && (!hideDone.value || !isDone(f.id))
+    acc[s] = findings.filter(f =>
+      f.severity === s &&
+      (catFilter.value === 'all' || f.category === catFilter.value) &&
+      (!hideDone.value || !isDone(f.id))
     )
     return acc
   }, {})
@@ -322,6 +377,33 @@ const visibleTotal = computed(() =>
 
 .a11y__stat--all .a11y__stat-dot { display: none; }
 
+/* Category dots */
+.a11y__stat--cat-design      .a11y__stat-dot { background: #7b3fa0; }
+.a11y__stat--cat-both        .a11y__stat-dot { background: #0a6b8a; }
+.a11y__stat--cat-engineering .a11y__stat-dot { background: #4a5568; }
+
+.a11y__filter-label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+  margin-right: 2px;
+  min-width: 78px;
+}
+
+.a11y__layout-note {
+  padding: 10px 12px;
+  border-left: 3px solid var(--color-brand-600);
+  background: #f3f4f8;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-neutral-500);
+}
+
+.a11y__layout-note strong { color: var(--color-neutral-700); }
+
 .a11y__toggle {
   display: inline-flex;
   align-items: center;
@@ -448,6 +530,7 @@ const visibleTotal = computed(() =>
   gap: 6px;
 }
 
+.a11y__cat,
 .a11y__sc,
 .a11y__source {
   padding: 2px 6px;
@@ -455,6 +538,11 @@ const visibleTotal = computed(() =>
   font-size: var(--text-xs);
   white-space: nowrap;
 }
+
+.a11y__cat { font-weight: var(--weight-semibold); }
+.a11y__cat--design      { background: #f3e8fa; color: #6a3590; }
+.a11y__cat--both        { background: #e0f2f7; color: #075c78; }
+.a11y__cat--engineering { background: #eceef2; color: #3d4756; }
 
 .a11y__sc {
   background: #e6e9f1;

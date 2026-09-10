@@ -33,6 +33,21 @@ and `reset.css`, plus live testing in the browser:
 | 🟠 Medium | 7 | Status announcements, non-text & placeholder contrast |
 | 🟡 Low | 6 | Redundant alt text, disabled semantics, tooltips, headings |
 
+### Who owns it
+
+| Category | Count | Meaning |
+| --- | --- | --- |
+| **Design** | 5 | Needs a design decision; changes what users see |
+| **Design + Eng** | 3 | Needs a design decision *and* code |
+| **Engineering** | 10 | Code only; invisible to sighted users |
+
+> **Layout impact: none.** No finding changes layout or geometry. All 5 Design items are
+> colour/token changes (4 of them the *same* `--color-neutral-200` token), and the 3
+> Design + Eng items are overlay behaviour. Nothing reflows or resizes.
+>
+> The one potential layout risk — fixed heights vs. **SC 1.4.12 Text Spacing** — is
+> unverified and listed under [Caveats](#caveats--what-was-not-verified).
+
 ---
 
 ## ✅ What already passes
@@ -53,19 +68,27 @@ Worth protecting in future changes:
 ## 🔴 High priority
 
 ### 1. No focus trap, despite `aria-modal="true"` — SC 2.4.3, 4.1.2
+`Engineering`
+
 **Measured:** 8 focusable elements outside the dialog remain tab-reachable (nav tabs, source links).
 The dialog claims a modality it does not enforce, which actively misleads assistive tech.
 **Action:** implement a focus trap, or drop `aria-modal` until it is real.
 
 ### 2. No focus management on open/close — SC 2.4.3
+`Engineering`
+
 Focus is never moved into the dialog on open, nor returned to the trigger on close.
 **Action:** on open, focus the dialog or its first control; store and restore the invoking element on close.
 
 ### 3. Escape does not close the dialog
+`Engineering`
+
 `@keydown.esc` only closes the results dropdown.
 **Action:** add a dialog-level Escape handler (ARIA APG requirement for modals).
 
 ### 4. Combobox is not keyboard-navigable — SC 2.1.1 (partial), 4.1.2
+`Design + Eng`
+
 **Measured:** Arrow Down does nothing; focus stays in the input. The ARIA is incomplete —
 no `aria-controls`, no `aria-activedescendant`, and the listbox has no `id` and no accessible name.
 *Mitigating:* options are `<button>`s, so they are Tab-reachable — operable, but not the expected pattern.
@@ -73,6 +96,8 @@ no `aria-controls`, no `aria-activedescendant`, and the listbox has no `id` and 
 and wire up `aria-controls` + `aria-activedescendant`.
 
 ### 5. Focus obscured by the dropdown — SC 2.4.11 Focus Not Obscured (Minimum), AA — **new in WCAG 2.2**
+`Engineering`
+
 **Measured:** with the dropdown open, all 3 suggestion chips are fully covered
 (dropdown spans y 369–649) yet remain in the tab order. Tabbing past the last option
 lands focus on a completely hidden control.
@@ -84,25 +109,37 @@ or close the dropdown when focus leaves it.
 ## 🟠 Medium priority
 
 ### 6. Results are probably never announced — SC 4.1.3 Status Messages
+`Engineering`
+
 `aria-live="polite"` sits on the dropdown element itself, which is `v-if`-mounted **together with**
 its content. Live regions must already exist in the DOM for changes to be announced.
 **Action:** move the live region to a permanently rendered visually-hidden element,
 announcing e.g. "7 results available".
 
 ### 7. Shared-with list re-announces wholesale — SC 4.1.3
+`Engineering`
+
 `aria-live="polite" aria-atomic="true"` on the whole list means every add/remove re-reads the entire list.
 **Action:** drop `aria-atomic`; announce only the delta.
 
 ### 8. No confirmation when a recipient is added or removed — SC 4.1.3
+`Engineering`
+
 **Action:** announce "Joanna Lee added" / "Joanna Lee removed" via the status region.
 
 ### 9. Input border fails non-text contrast — SC 1.4.11
+`Design`
+
 `#dddddd` = **1.36:1** (needs 3:1).
 
 ### 10. Suggestion chip border fails non-text contrast — SC 1.4.11
+`Design`
+
 `#dddddd` = **1.36:1** (needs 3:1).
 
 ### 11. Dropdown border fails non-text contrast — SC 1.4.11
+`Design`
+
 `#dddddd` = **1.36:1** (needs 3:1).
 
 > **9–11 are one decision.** These are the boundaries that define each control, and they all
@@ -111,6 +148,8 @@ announcing e.g. "7 results available".
 > rather than as a local patch.
 
 ### 12. Placeholder text fails contrast — SC 1.4.3
+`Design`
+
 `#939393` = **3.07:1** (text needs 4.5:1).
 **Action:** darken to `#757575` (4.6:1) or darker.
 
@@ -119,24 +158,36 @@ announcing e.g. "7 results available".
 ## 🟡 Low priority
 
 ### 13. "No results for…" fails contrast — SC 1.4.3
+`Design`
+
 Uses `--color-neutral-400` (`#939393`) = **3.07:1**. Darken it.
 
 ### 14. Avatar `alt` duplicates the visible name — SC 1.1.1
+`Engineering`
+
 `alt="{name}"` sits directly beside the same name in text, so screen readers announce it twice.
 **Action:** use `alt=""` (decorative).
 
 ### 15. "Already added" rows are `disabled` — SC 4.1.2
+`Engineering`
+
 `disabled` removes them from the tab order, so keyboard users never land on them.
 **Action:** prefer `aria-disabled="true"` so the state is announced while the row stays reachable.
 
 ### 16. Trash tooltip is hover-only — SC 1.4.13
+`Design + Eng`
+
 Not shown on keyboard focus, not Esc-dismissible, and `pointer-events: none` so it is not hoverable.
 *Mitigating:* `aria-label="Remove"` covers screen-reader users, so this affects sighted keyboard users only.
 
 ### 17. Truncated-email tooltip is hover-only — SC 1.4.13
+`Design + Eng`
+
 Sighted keyboard users cannot reveal truncated addresses.
 
 ### 18. No `<h1>` on the page — SC 1.3.1 / 2.4.6
+`Engineering`
+
 The dialog title is an `<h2>`. Minor, and largely moot once the dialog becomes a real overlay.
 
 ---

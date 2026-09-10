@@ -25,14 +25,23 @@ export const passing = [
 
 /**
  * severity: 'high' | 'medium' | 'low'
+ * category: 'design'      — needs a design decision; changes what users see
+ *           'engineering' — code only; invisible to sighted users
+ *           'both'        — needs a design decision *and* code
  * measured: true when the evidence came from a live measurement rather than
  *           being inferred from the markup (see the caveats in Accessibility.md)
+ *
+ * NOTE: none of these findings change layout or geometry. Every 'design' item is
+ * a colour/token change or overlay behaviour — nothing reflows or resizes. The
+ * one potential layout risk (fixed heights vs. SC 1.4.12 Text Spacing) is
+ * unverified and listed under `caveats`, not here.
  */
 export const findings = [
   // ── High ────────────────────────────────────────────────────────────────
   {
     id: 'a11y-1',
     severity: 'high',
+    category: 'engineering',
     title: 'No focus trap, despite aria-modal="true"',
     sc: 'SC 2.4.3, 4.1.2',
     measured: true,
@@ -42,6 +51,7 @@ export const findings = [
   {
     id: 'a11y-2',
     severity: 'high',
+    category: 'engineering',
     title: 'No focus management on open/close',
     sc: 'SC 2.4.3',
     measured: true,
@@ -51,6 +61,7 @@ export const findings = [
   {
     id: 'a11y-3',
     severity: 'high',
+    category: 'engineering',
     title: 'Escape does not close the dialog',
     sc: 'ARIA APG — modal dialog',
     measured: true,
@@ -60,6 +71,7 @@ export const findings = [
   {
     id: 'a11y-4',
     severity: 'high',
+    category: 'both',
     title: 'Combobox is not keyboard-navigable',
     sc: 'SC 2.1.1 (partial), 4.1.2',
     measured: true,
@@ -69,6 +81,7 @@ export const findings = [
   {
     id: 'a11y-5',
     severity: 'high',
+    category: 'engineering',
     title: 'Focus obscured by the open dropdown',
     sc: 'SC 2.4.11 (new in 2.2)',
     measured: true,
@@ -80,6 +93,7 @@ export const findings = [
   {
     id: 'a11y-6',
     severity: 'medium',
+    category: 'engineering',
     title: 'Search results are probably never announced',
     sc: 'SC 4.1.3 Status Messages',
     measured: false,
@@ -89,6 +103,7 @@ export const findings = [
   {
     id: 'a11y-7',
     severity: 'medium',
+    category: 'engineering',
     title: 'Shared-with list re-announces wholesale',
     sc: 'SC 4.1.3',
     measured: false,
@@ -98,6 +113,7 @@ export const findings = [
   {
     id: 'a11y-8',
     severity: 'medium',
+    category: 'engineering',
     title: 'No confirmation when a recipient is added or removed',
     sc: 'SC 4.1.3',
     measured: false,
@@ -107,6 +123,7 @@ export const findings = [
   {
     id: 'a11y-9',
     severity: 'medium',
+    category: 'design',
     title: 'Input border fails non-text contrast',
     sc: 'SC 1.4.11',
     measured: true,
@@ -116,6 +133,7 @@ export const findings = [
   {
     id: 'a11y-10',
     severity: 'medium',
+    category: 'design',
     title: 'Suggestion chip border fails non-text contrast',
     sc: 'SC 1.4.11',
     measured: true,
@@ -125,6 +143,7 @@ export const findings = [
   {
     id: 'a11y-11',
     severity: 'medium',
+    category: 'design',
     title: 'Dropdown border fails non-text contrast',
     sc: 'SC 1.4.11',
     measured: true,
@@ -134,6 +153,7 @@ export const findings = [
   {
     id: 'a11y-12',
     severity: 'medium',
+    category: 'design',
     title: 'Placeholder text fails contrast',
     sc: 'SC 1.4.3',
     measured: true,
@@ -145,6 +165,7 @@ export const findings = [
   {
     id: 'a11y-13',
     severity: 'low',
+    category: 'design',
     title: '"No results for…" fails contrast',
     sc: 'SC 1.4.3',
     measured: true,
@@ -154,6 +175,7 @@ export const findings = [
   {
     id: 'a11y-14',
     severity: 'low',
+    category: 'engineering',
     title: 'Avatar alt duplicates the visible name',
     sc: 'SC 1.1.1',
     measured: false,
@@ -163,6 +185,7 @@ export const findings = [
   {
     id: 'a11y-15',
     severity: 'low',
+    category: 'engineering',
     title: '"Already added" rows use disabled',
     sc: 'SC 4.1.2',
     measured: true,
@@ -172,6 +195,7 @@ export const findings = [
   {
     id: 'a11y-16',
     severity: 'low',
+    category: 'both',
     title: 'Trash tooltip is hover-only',
     sc: 'SC 1.4.13',
     measured: true,
@@ -181,6 +205,7 @@ export const findings = [
   {
     id: 'a11y-17',
     severity: 'low',
+    category: 'both',
     title: 'Truncated-email tooltip is hover-only',
     sc: 'SC 1.4.13',
     measured: true,
@@ -190,6 +215,7 @@ export const findings = [
   {
     id: 'a11y-18',
     severity: 'low',
+    category: 'engineering',
     title: 'No <h1> on the page',
     sc: 'SC 1.3.1 / 2.4.6',
     measured: true,
