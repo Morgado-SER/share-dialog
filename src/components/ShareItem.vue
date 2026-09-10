@@ -61,7 +61,7 @@
       </button>
 
       <!-- Delete icon button — revealed on row hover; may sit alongside the
-           permission control (Invite dialog) -->
+           permission control -->
       <button
         v-if="deletable"
         type="button"
@@ -166,7 +166,7 @@ defineProps({
   added:      { type: Boolean, default: false },
   advanced:   { type: Boolean, default: false },
   permissionControl: { type: Boolean, default: true },
-  // Default list; dialogs may pass their own (e.g. Invite uses short labels)
+  // Default list; a dialog may pass its own shorter/longer set
   permissionOptions: {
     type: Array,
     default: () => ['Read/display', 'Write/modify', 'Full access', 'Custom'],

@@ -14,11 +14,6 @@
       >Share</button>
       <button
         class="prototype-nav__tab"
-        :class="{ 'prototype-nav__tab--active': view === 'invite' }"
-        @click="view = 'invite'"
-      >Invite</button>
-      <button
-        class="prototype-nav__tab"
         :class="{ 'prototype-nav__tab--active': view === 'rights' }"
         @click="view = 'rights'"
       >Rights</button>
@@ -32,17 +27,6 @@
     <!-- Share dialog (simple) -->
     <main v-if="view === 'share'" class="prototype-stage">
       <ShareDialog
-        item-name="Project Alpha — Q3 Report"
-        @close="handleClose"
-        @cancel="handleCancel"
-        @done="handleDone"
-        @add="handleAdd"
-      />
-    </main>
-
-    <!-- Invite dialog (duplicate of Share, for new tests) -->
-    <main v-else-if="view === 'invite'" class="prototype-stage">
-      <InviteDialog
         item-name="Project Alpha — Q3 Report"
         @close="handleClose"
         @cancel="handleCancel"
@@ -180,7 +164,6 @@
 <script setup>
 import { ref, computed } from 'vue'
 import ShareDialog  from './components/ShareDialog.vue'
-import InviteDialog from './components/InviteDialog.vue'
 import RightsDialog from './components/RightsDialog.vue'
 import AvatarItem   from './components/AvatarItem.vue'
 import ShareItem    from './components/ShareItem.vue'
@@ -197,12 +180,6 @@ const SOURCE_FILES = {
     'src/components/ShareItem.vue',
     'src/components/AvatarItem.vue',
     'src/components/SuggestionChip.vue',
-    'src/data/mockSearchData.js',
-  ],
-  invite: [
-    'src/components/InviteDialog.vue',
-    'src/components/ShareItem.vue',
-    'src/components/AvatarItem.vue',
     'src/data/mockSearchData.js',
   ],
   rights: [
