@@ -95,6 +95,16 @@
           </div>
         </div>
 
+        <!-- Suggested recipients — one click adds them, same as a dropdown row -->
+        <div v-if="suggestions.length > 0" class="suggestions">
+          <SuggestionChip
+            v-for="s in suggestions"
+            :key="s.id"
+            :label="s.name"
+            @select="handleAdd(s)"
+          />
+        </div>
+
         <!-- Shared-with list -->
         <div
           v-if="recipients.length > 0"
@@ -207,8 +217,9 @@ import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import IconClose        from './icons/IconClose.vue'
 import IconUser         from './icons/IconUser.vue'
 import ShareItem        from './ShareItem.vue'
+import SuggestionChip   from './SuggestionChip.vue'
 import PermissionsPanel from './PermissionsPanel.vue'
-import { searchMockData }        from '../data/mockSearchData.js'
+import { searchMockData, getSuggestions } from '../data/mockSearchData.js'
 import { getPermissionTemplate } from '../data/mockPermissions.js'
 
 const props = defineProps({
@@ -289,6 +300,11 @@ function onAdvHover(e) {
   }
   advTooltipVisible.value = true
 }
+
+// Suggested recipients, minus anyone already added
+const suggestions = computed(() =>
+  getSuggestions().filter(s => !recipients.value.some(r => r.id === s.id))
+)
 
 // Show all matches; mark the ones already added so they render with the
 // permission control instead of the Add button
@@ -535,6 +551,16 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 .share-dialog__input:focus {
   border-color: var(--color-border-focus);
   box-shadow: 0 0 0 3px rgba(5, 36, 116, 0.12);
+}
+
+/* ── Suggestion chips ── */
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 20px 0;
+  flex-shrink: 0;
 }
 
 /* ── Results dropdown (anchored to the search input) ── */

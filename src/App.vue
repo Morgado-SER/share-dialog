@@ -126,6 +126,21 @@
         </div>
       </section>
 
+      <!-- Suggestion chip -->
+      <section class="gallery-section">
+        <h3 class="gallery-section__title">Suggestion chip</h3>
+        <div class="gallery-col">
+          <div class="gallery-item gallery-item--row">
+            <span class="gallery-label gallery-label--inline">Default</span>
+            <SuggestionChip label="Tatiana" />
+          </div>
+          <div class="gallery-item gallery-item--row">
+            <span class="gallery-label gallery-label--inline">Hover</span>
+            <SuggestionChip label="Ingo Gerken" hover />
+          </div>
+        </div>
+      </section>
+
       <!-- Link button — Advanced options states -->
       <section class="gallery-section">
         <h3 class="gallery-section__title">Link button — Advanced options</h3>
@@ -169,6 +184,7 @@ import InviteDialog from './components/InviteDialog.vue'
 import RightsDialog from './components/RightsDialog.vue'
 import AvatarItem   from './components/AvatarItem.vue'
 import ShareItem    from './components/ShareItem.vue'
+import SuggestionChip from './components/SuggestionChip.vue'
 
 const view = ref('rights')
 
@@ -180,6 +196,7 @@ const SOURCE_FILES = {
     'src/components/ShareDialog.vue',
     'src/components/ShareItem.vue',
     'src/components/AvatarItem.vue',
+    'src/components/SuggestionChip.vue',
     'src/data/mockSearchData.js',
   ],
   invite: [
@@ -193,12 +210,14 @@ const SOURCE_FILES = {
     'src/components/PermissionsPanel.vue',
     'src/components/ShareItem.vue',
     'src/components/AvatarItem.vue',
+    'src/components/SuggestionChip.vue',
     'src/data/mockPermissions.js',
   ],
   components: [
     'src/App.vue',
     'src/components/AvatarItem.vue',
     'src/components/ShareItem.vue',
+    'src/components/SuggestionChip.vue',
   ],
 }
 

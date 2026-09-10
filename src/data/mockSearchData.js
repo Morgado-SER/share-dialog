@@ -25,6 +25,22 @@ export const mockSearchData = [
 ]
 
 /**
+ * Suggested recipients shown as chips under the search field.
+ *
+ * PLACEHOLDER: which recipients get suggested is a product decision still to be
+ * made with the development team — it could be based on frequency of sharing,
+ * favourites, recent collaborators, team membership, etc. For now this is a
+ * fixed hand-picked list; swap this function for the real ranking later.
+ */
+const suggestedIds = [1, 3, 5]
+
+export function getSuggestions() {
+  return suggestedIds
+    .map(id => mockSearchData.find(item => item.id === id))
+    .filter(Boolean)
+}
+
+/**
  * Filter the dataset by a search query.
  * Matches against name and subText, case-insensitive.
  */
