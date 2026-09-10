@@ -33,38 +33,42 @@
       <!-- Left: search + results -->
       <div class="share-dialog__body">
 
-        <!-- Search field -->
+        <!-- Search field — results appear in a dropdown anchored to the input -->
         <div class="share-dialog__search">
           <label :for="inputId" class="share-dialog__label">
             Search people, groups, units, or roles
           </label>
-          <input
-            :id="inputId"
-            v-model="searchQuery"
-            type="text"
-            class="share-dialog__input"
-            :class="{ 'share-dialog__input--active': searchQuery.length > 0 }"
-            placeholder="Search by name or email"
-            autocomplete="off"
-          />
-        </div>
 
-        <!-- Search results OR Shared-with list -->
-        <div
-          v-if="searchQuery.length > 0 || recipients.length > 0"
-          ref="resultsRef"
-          class="share-dialog__results"
-          aria-live="polite"
-          aria-atomic="true"
-          @scroll="onResultsScroll"
-        >
-          <!-- Search results -->
-          <template v-if="searchQuery.length > 0">
-            <div class="share-dialog__section-header">
-              <span class="share-dialog__section-label">Search results</span>
-            </div>
-            <ul class="share-dialog__list" role="list">
-              <li v-for="result in searchResults" :key="result.id">
+          <div ref="searchWrapRef" class="search-anchor">
+            <input
+              :id="inputId"
+              v-model="searchQuery"
+              type="text"
+              class="share-dialog__input"
+              :class="{ 'share-dialog__input--active': searchQuery.length > 0 }"
+              placeholder="Search by name or email"
+              autocomplete="off"
+              role="combobox"
+              aria-autocomplete="list"
+              :aria-expanded="dropdownOpen"
+              @focus="dropdownOpen = true"
+              @click="dropdownOpen = true"
+              @keydown.esc="dropdownOpen = false"
+            />
+
+            <!-- Results dropdown — rows keep their Add button, and the
+                 permission control for anyone already added -->
+            <div
+              v-if="dropdownOpen"
+              class="results-dropdown"
+              role="listbox"
+              aria-live="polite"
+            >
+              <div
+                v-for="result in searchResults"
+                :key="result.id"
+                class="results-dropdown__row"
+              >
                 <ShareItem
                   type="Secondary"
                   :name="result.name"
@@ -78,37 +82,45 @@
                   @update:permission="updatePermission(result.id, $event)"
                   @remove="removeRecipient(result.id)"
                 />
-              </li>
-              <li v-if="searchResults.length === 0" class="share-dialog__no-results">
-                No results for "{{ searchQuery }}"
-              </li>
-            </ul>
-          </template>
+              </div>
 
-          <!-- Shared with list -->
-          <template v-else>
-            <div class="share-dialog__section-header">
-              <span class="share-dialog__section-label">Shared with:</span>
+              <p v-if="searchResults.length === 0" class="results-dropdown__empty">
+                No results for "{{ searchQuery }}"
+              </p>
             </div>
-            <ul class="share-dialog__list" role="list">
-              <li v-for="recipient in recipients" :key="recipient.id">
-                <ShareItem
-                  type="Tertiary"
-                  :name="recipient.name"
-                  :sub-text="recipient.subText"
-                  :tag="recipient.tag"
-                  :avatar-type="recipient.avatarType"
-                  :avatar-src="recipient.avatarSrc"
-                  :permission="recipient.permission"
-                  :advanced="advancedMode"
-                  :selected="advancedMode && selectedIds.includes(recipient.id)"
-                  @select="handleSelect(recipient.id)"
-                  @update:permission="updatePermission(recipient.id, $event)"
-                  @remove="removeRecipient(recipient.id)"
-                />
-              </li>
-            </ul>
-          </template>
+          </div>
+        </div>
+
+        <!-- Shared-with list -->
+        <div
+          v-if="recipients.length > 0"
+          ref="resultsRef"
+          class="share-dialog__results"
+          aria-live="polite"
+          aria-atomic="true"
+          @scroll="onResultsScroll"
+        >
+          <div class="share-dialog__section-header">
+            <span class="share-dialog__section-label">Shared with:</span>
+          </div>
+          <ul class="share-dialog__list" role="list">
+            <li v-for="recipient in recipients" :key="recipient.id">
+              <ShareItem
+                type="Tertiary"
+                :name="recipient.name"
+                :sub-text="recipient.subText"
+                :tag="recipient.tag"
+                :avatar-type="recipient.avatarType"
+                :avatar-src="recipient.avatarSrc"
+                :permission="recipient.permission"
+                :advanced="advancedMode"
+                :selected="advancedMode && selectedIds.includes(recipient.id)"
+                @select="handleSelect(recipient.id)"
+                @update:permission="updatePermission(recipient.id, $event)"
+                @remove="removeRecipient(recipient.id)"
+              />
+            </li>
+          </ul>
         </div>
 
         <!-- Empty state -->
@@ -187,7 +199,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import IconClose        from './icons/IconClose.vue'
 import IconUser         from './icons/IconUser.vue'
 import ShareItem        from './ShareItem.vue'
@@ -210,6 +222,22 @@ const resultsRef     = ref(null)
 const recipients     = ref([])
 const selectedIds    = ref([])
 const advancedMode   = ref(false)
+
+// ── Results dropdown ──
+const dropdownOpen  = ref(false)
+const searchWrapRef = ref(null)
+
+// Typing opens the dropdown; clearing the query closes it
+watch(searchQuery, q => { dropdownOpen.value = q.length > 0 })
+
+function onDocumentClick(e) {
+  if (searchWrapRef.value && !searchWrapRef.value.contains(e.target)) {
+    dropdownOpen.value = false
+  }
+}
+
+onMounted(()       => document.addEventListener('click', onDocumentClick))
+onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick))
 
 // The dialog expands (and reveals the permissions panel) only in advanced mode
 const isExpanded = computed(() => advancedMode.value)
@@ -503,6 +531,54 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 .share-dialog__input:focus {
   border-color: var(--color-border-focus);
   box-shadow: 0 0 0 3px rgba(5, 36, 116, 0.12);
+}
+
+/* ── Results dropdown (anchored to the search input) ── */
+.search-anchor {
+  position: relative;
+}
+
+.results-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 4px;
+  background: var(--color-neutral-0);
+  border: 1px solid #dddddd;
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.06);
+  scrollbar-width: thin;
+  scrollbar-color: #dddddd transparent;
+}
+
+.results-dropdown::-webkit-scrollbar        { width: 4px; }
+.results-dropdown::-webkit-scrollbar-track  { background: transparent; }
+.results-dropdown::-webkit-scrollbar-thumb  { background: #dddddd; border-radius: 999px; }
+
+/* Rows keep their own controls, so the row itself is not clickable */
+.results-dropdown__row {
+  border-radius: var(--radius-lg);
+  transition: background var(--transition-default);
+}
+
+.results-dropdown__row:hover {
+  background: #f5f5f5;
+}
+
+.results-dropdown__empty {
+  padding: 16px 10px;
+  font-size: var(--text-sm);
+  color: var(--color-neutral-400);
+  text-align: center;
 }
 
 /* ── Scrollable results / shared-with container ── */
