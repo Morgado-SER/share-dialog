@@ -22,6 +22,11 @@
         :class="{ 'prototype-nav__tab--active': view === 'components' }"
         @click="view = 'components'"
       >Components</button>
+      <button
+        class="prototype-nav__tab"
+        :class="{ 'prototype-nav__tab--active': view === 'a11y' }"
+        @click="view = 'a11y'"
+      >Accessibility</button>
     </nav>
 
     <!-- Share dialog (simple) -->
@@ -44,6 +49,11 @@
         @done="handleDone"
         @add="handleAdd"
       />
+    </main>
+
+    <!-- Accessibility report / checklist -->
+    <main v-else-if="view === 'a11y'" class="prototype-gallery">
+      <AccessibilityReport />
     </main>
 
     <!-- Component gallery -->
@@ -168,6 +178,7 @@ import RightsDialog from './components/RightsDialog.vue'
 import AvatarItem   from './components/AvatarItem.vue'
 import ShareItem    from './components/ShareItem.vue'
 import SuggestionChip from './components/SuggestionChip.vue'
+import AccessibilityReport from './components/AccessibilityReport.vue'
 
 const view = ref('rights')
 
@@ -195,6 +206,11 @@ const SOURCE_FILES = {
     'src/components/AvatarItem.vue',
     'src/components/ShareItem.vue',
     'src/components/SuggestionChip.vue',
+  ],
+  a11y: [
+    'Accessibility.md',
+    'src/components/AccessibilityReport.vue',
+    'src/data/accessibilityFindings.js',
   ],
 }
 
