@@ -66,8 +66,10 @@
         v-if="deletable"
         type="button"
         class="share-item__delete"
-        aria-label="Remove from list"
+        aria-label="Remove"
         @click.stop="emit('remove')"
+        @mouseenter="onDeleteHover"
+        @mouseleave="deleteTipVisible = false"
       >
         <IconTrash />
       </button>
@@ -94,6 +96,15 @@
       class="share-tooltip"
       :style="tooltipStyle"
     >{{ subText }}</div>
+  </Teleport>
+
+  <!-- Delete button tooltip -->
+  <Teleport to="body">
+    <div
+      v-if="deleteTipVisible"
+      class="share-tooltip"
+      :style="deleteTipStyle"
+    >Remove</div>
   </Teleport>
 
   <!-- Permission dropdown — teleported to body to escape overflow clipping -->
@@ -186,6 +197,19 @@ function onSubHover() {
     top:  `${rect.top - 8}px`,
   }
   tooltipVisible.value = true
+}
+
+// ── Delete button tooltip ──
+const deleteTipVisible = ref(false)
+const deleteTipStyle   = ref({})
+
+function onDeleteHover(e) {
+  const rect = e.currentTarget.getBoundingClientRect()
+  deleteTipStyle.value = {
+    left: `${rect.left + rect.width / 2}px`,
+    top:  `${rect.top - 8}px`,
+  }
+  deleteTipVisible.value = true
 }
 
 // ── Dropdown ──

@@ -51,23 +51,29 @@
               role="combobox"
               aria-autocomplete="list"
               :aria-expanded="dropdownOpen"
-              @focus="dropdownOpen = true"
-              @click="dropdownOpen = true"
+              @focus="dropdownOpen = searchQuery.length > 0"
+              @click="dropdownOpen = searchQuery.length > 0"
               @keydown.esc="dropdownOpen = false"
             />
 
-            <!-- Results dropdown — rows keep their Add button, and the
-                 permission control for anyone already added -->
+            <!-- Results dropdown — click a row to add; already-added people
+                 are shown for context with an "Already added" label -->
             <div
               v-if="dropdownOpen"
               class="results-dropdown"
               role="listbox"
               aria-live="polite"
             >
-              <div
+              <button
                 v-for="result in searchResults"
                 :key="result.id"
-                class="results-dropdown__row"
+                type="button"
+                class="results-dropdown__option"
+                :class="{ 'results-dropdown__option--disabled': result.added }"
+                role="option"
+                :aria-selected="false"
+                :disabled="result.added"
+                @click="handleAdd(result)"
               >
                 <ShareItem
                   type="Secondary"
@@ -77,12 +83,10 @@
                   :avatar-type="result.avatarType"
                   :avatar-src="result.avatarSrc"
                   :added="result.added"
-                  :permission="result.permission"
-                  @add="handleAdd(result)"
-                  @update:permission="updatePermission(result.id, $event)"
-                  @remove="removeRecipient(result.id)"
+                  :permission-control="false"
+                  :hide-action="!result.added"
                 />
-              </div>
+              </button>
 
               <p v-if="searchResults.length === 0" class="results-dropdown__empty">
                 No results for "{{ searchQuery }}"
@@ -564,14 +568,27 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 .results-dropdown::-webkit-scrollbar-track  { background: transparent; }
 .results-dropdown::-webkit-scrollbar-thumb  { background: #dddddd; border-radius: 999px; }
 
-/* Rows keep their own controls, so the row itself is not clickable */
-.results-dropdown__row {
+.results-dropdown__option {
+  display: block;
+  width: 100%;
+  padding: 0;
+  background: transparent;
   border-radius: var(--radius-lg);
+  text-align: left;
+  cursor: pointer;
   transition: background var(--transition-default);
 }
 
-.results-dropdown__row:hover {
+.results-dropdown__option:hover,
+.results-dropdown__option:focus-visible {
   background: #f5f5f5;
+}
+
+/* Already added — shown for context, but not selectable */
+.results-dropdown__option--disabled,
+.results-dropdown__option--disabled:hover {
+  background: transparent;
+  cursor: default;
 }
 
 .results-dropdown__empty {

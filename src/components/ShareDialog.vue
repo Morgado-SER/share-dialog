@@ -47,8 +47,8 @@
             role="combobox"
             aria-autocomplete="list"
             :aria-expanded="dropdownOpen"
-            @focus="dropdownOpen = true"
-            @click="dropdownOpen = true"
+            @focus="dropdownOpen = searchQuery.length > 0"
+            @click="dropdownOpen = searchQuery.length > 0"
             @keydown.esc="dropdownOpen = false"
           />
 
@@ -150,7 +150,7 @@
         class="share-dialog__btn share-dialog__btn--primary"
         @click="emit('done')"
       >
-        Done
+        Share
       </button>
     </div>
 
