@@ -158,7 +158,7 @@ export const findings = [
     sc: 'SC 1.4.11',
     measured: true,
     evidence: '#dddddd = 1.36:1 against white (needs 3:1).',
-    action: 'Covered by the same token change as #9.',
+    action: 'No change needed — design confirmed the drop shadow provides the boundary, so the border stays #dddddd as decoration.',
   },
   {
     id: 'a11y-12',

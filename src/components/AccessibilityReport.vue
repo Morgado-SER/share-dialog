@@ -134,7 +134,9 @@
           </label>
 
           <div class="a11y__body">
-            <p class="a11y__item-title">{{ f.title }}</p>
+            <p class="a11y__item-title">
+              <span class="a11y__num">#{{ numberOf(f.id) }}</span>{{ f.title }}
+            </p>
 
             <div class="a11y__badges">
               <span v-if="f.resolved" class="a11y__fixed">✓ Fixed in code</span>
@@ -198,6 +200,9 @@ const categoryLabel = {
 const filter    = ref('all')
 const catFilter = ref('all')
 const hideDone  = ref(false)
+
+/** "a11y-22" → "22", so findings can be referred to by number */
+const numberOf = id => id.replace('a11y-', '')
 
 // Completed ids, persisted so ticks survive a reload
 const done = ref(load())
@@ -531,6 +536,19 @@ const visibleTotal = computed(() =>
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   color: var(--color-neutral-700);
+}
+
+.a11y__num {
+  display: inline-block;
+  min-width: 26px;
+  margin-right: 6px;
+  color: var(--color-neutral-400);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Keep the number legible even when the row is struck through */
+.a11y__item--done .a11y__num {
+  text-decoration: none;
 }
 
 .a11y__badges {

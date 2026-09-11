@@ -671,7 +671,7 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   overflow-y: auto;
   padding: 4px;
   background: var(--color-neutral-0);
-  border: 1px solid var(--color-border);
+  border: 1px solid #dddddd; /* boundary comes from the shadow, not the border */
   border-radius: var(--radius-lg);
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.04),

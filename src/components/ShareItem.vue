@@ -425,7 +425,7 @@ function removeRecipient() {
   position: fixed;
   z-index: 200;
   background: #ffffff;
-  border: 1px solid var(--color-border);
+  border: 1px solid #dddddd; /* boundary comes from the shadow, not the border */
   border-radius: 8px;
   /* Figma "Lighter Shadow" */
   box-shadow:
