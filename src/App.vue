@@ -54,12 +54,20 @@
     <!-- Rights dialog (advanced) -->
     <main v-else-if="view === 'rights'" class="prototype-stage">
       <RightsDialog
+        v-if="rightsOpen"
         item-name="Project Alpha — Q3 Report"
-        @close="handleClose"
-        @cancel="handleCancel"
-        @done="handleDone"
+        @close="closeRights"
+        @cancel="closeRights"
+        @done="closeRights"
         @add="handleAdd"
       />
+      <button
+        v-else
+        ref="rightsTriggerRef"
+        type="button"
+        class="prototype-trigger"
+        @click="rightsOpen = true"
+      >Open Rights dialog</button>
     </main>
 
     <!-- Accessibility report / checklist -->
@@ -241,7 +249,14 @@ function closeShare() {
   nextTick(() => shareTriggerRef.value?.focus())
 }
 
-function handleClose()      { console.log('Dialog closed') }
+const rightsOpen       = ref(true)
+const rightsTriggerRef = ref(null)
+
+function closeRights() {
+  rightsOpen.value = false
+  nextTick(() => rightsTriggerRef.value?.focus())
+}
+
 function handleCancel()     { console.log('Cancelled') }
 function handleDone()       { console.log('Done') }
 function handleAdd(result)  { console.log('Added:', result.name) }

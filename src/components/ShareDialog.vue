@@ -7,7 +7,6 @@
     :aria-labelledby="titleId"
     :aria-describedby="descId"
     tabindex="-1"
-    @keydown="onDialogKeydown"
   >
 
     <!-- Status region — permanently in the DOM so changes are announced.
@@ -204,11 +203,17 @@ const dialogRef = ref(null)
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
 
-/** Focusable elements inside the dialog, skipping anything inert or hidden. */
+/**
+ * Focusable elements inside the dialog, skipping anything inert or hidden.
+ * ShareItem can teleport content to <body>, so include any open dropdown too.
+ */
 function focusableEls() {
   if (!dialogRef.value) return []
-  return [...dialogRef.value.querySelectorAll(FOCUSABLE)].filter(
-    el => !el.closest('[inert]') && el.offsetParent !== null
+  const roots = [dialogRef.value, ...document.querySelectorAll('.perm-dropdown')]
+  return roots.flatMap(root =>
+    [...root.querySelectorAll(FOCUSABLE)].filter(
+      el => !el.closest('[inert]') && el.offsetParent !== null
+    )
   )
 }
 
@@ -237,10 +242,14 @@ function onDialogKeydown(e) {
   }
 }
 
-// Move focus into the dialog on open, so its name and description are announced
+// Listen on document, not the dialog, so key events raised in teleported
+// content (which sits outside the dialog) still reach the trap.
 onMounted(() => {
+  document.addEventListener('keydown', onDialogKeydown)
+  // Move focus in on open, so the dialog's name and description are announced
   nextTick(() => dialogRef.value?.focus())
 })
+onBeforeUnmount(() => document.removeEventListener('keydown', onDialogKeydown))
 
 // ── Results dropdown ──
 const dropdownOpen  = ref(false)

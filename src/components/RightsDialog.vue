@@ -1,11 +1,17 @@
 <template>
   <div
+    ref="dialogRef"
     class="share-dialog"
     :class="{ 'share-dialog--expanded': isExpanded }"
     role="dialog"
     aria-modal="true"
     :aria-labelledby="titleId"
+    :aria-describedby="descId"
+    tabindex="-1"
   >
+
+    <!-- Status region — permanently in the DOM so changes are announced (a11y #6, #8) -->
+    <p class="sr-only" role="status" aria-live="polite">{{ statusMessage }}</p>
 
     <!-- ── Header ── -->
     <div class="share-dialog__header">
@@ -22,7 +28,7 @@
           <IconClose />
         </button>
       </div>
-      <p class="share-dialog__subtitle">
+      <p :id="descId" class="share-dialog__subtitle">
         Grant rights for individuals, groups, teams, or roles.
       </p>
     </div>
@@ -53,7 +59,6 @@
               :aria-expanded="dropdownOpen"
               @focus="dropdownOpen = searchQuery.length > 0"
               @click="dropdownOpen = searchQuery.length > 0"
-              @keydown.esc="dropdownOpen = false"
             />
 
             <!-- Results dropdown — click a row to add; already-added people
@@ -72,8 +77,8 @@
                 :class="{ 'results-dropdown__option--disabled': result.added }"
                 role="option"
                 :aria-selected="false"
-                :disabled="result.added"
-                @click="handleAdd(result)"
+                :aria-disabled="result.added || null"
+                @click="onOptionClick(result)"
               >
                 <ShareItem
                   type="Secondary"
@@ -95,8 +100,13 @@
           </div>
         </div>
 
-        <!-- Suggested recipients — one click adds them, same as a dropdown row -->
-        <div v-if="suggestions.length > 0" class="suggestions">
+        <!-- Suggested recipients — one click adds them, same as a dropdown row.
+             Inert while the dropdown covers them (a11y #5) -->
+        <div
+          v-if="suggestions.length > 0"
+          class="suggestions"
+          :inert="dropdownOpen || null"
+        >
           <SuggestionChip
             v-for="s in suggestions"
             :key="s.id"
@@ -110,8 +120,7 @@
           v-if="recipients.length > 0"
           ref="resultsRef"
           class="share-dialog__results"
-          aria-live="polite"
-          aria-atomic="true"
+          :inert="dropdownOpen || null"
           @scroll="onResultsScroll"
         >
           <div class="share-dialog__section-header">
@@ -238,6 +247,61 @@ const recipients     = ref([])
 const selectedIds    = ref([])
 const advancedMode   = ref(false)
 
+// ── Modal focus behaviour (a11y #1, #2, #3) ──
+const dialogRef = ref(null)
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+
+/**
+ * Focusable elements inside the dialog, skipping anything inert or hidden.
+ * ShareItem teleports its permission dropdown to <body>, so it lives outside
+ * the dialog element — include it explicitly or the trap would make those
+ * options unreachable by keyboard.
+ */
+function focusableEls() {
+  if (!dialogRef.value) return []
+  const roots = [dialogRef.value, ...document.querySelectorAll('.perm-dropdown')]
+  return roots.flatMap(root =>
+    [...root.querySelectorAll(FOCUSABLE)].filter(
+      el => !el.closest('[inert]') && el.offsetParent !== null
+    )
+  )
+}
+
+function onDialogKeydown(e) {
+  // Escape closes the dropdown first, then the dialog
+  if (e.key === 'Escape') {
+    if (dropdownOpen.value) dropdownOpen.value = false
+    else emit('close')
+    return
+  }
+
+  if (e.key !== 'Tab') return
+  const els = focusableEls()
+  if (els.length === 0) return
+
+  const first = els[0]
+  const last  = els[els.length - 1]
+
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault()
+    last.focus()
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault()
+    first.focus()
+  }
+}
+
+// Listen on document, not the dialog: the permission dropdown is teleported to
+// <body>, so key events raised inside it never bubble through the dialog and the
+// trap would let focus escape.
+onMounted(() => {
+  document.addEventListener('keydown', onDialogKeydown)
+  // Move focus in on open, so the dialog's name and description are announced
+  nextTick(() => dialogRef.value?.focus())
+})
+onBeforeUnmount(() => document.removeEventListener('keydown', onDialogKeydown))
+
 // ── Results dropdown ──
 const dropdownOpen  = ref(false)
 const searchWrapRef = ref(null)
@@ -301,6 +365,9 @@ function onAdvHover(e) {
   advTooltipVisible.value = true
 }
 
+// ── Status announcements (a11y #6, #8) ──
+const statusMessage = ref('')
+
 // Suggested recipients, minus anyone already added
 const suggestions = computed(() =>
   getSuggestions().filter(s => !recipients.value.some(r => r.id === s.id))
@@ -318,6 +385,22 @@ const searchResults = computed(() => {
     }
   })
 })
+
+// Announce how many results the current query found (a11y #6)
+watch([searchResults, dropdownOpen], () => {
+  if (!dropdownOpen.value) return
+  const n = searchResults.value.length
+  statusMessage.value = n === 0
+    ? `No results for ${searchQuery.value}`
+    : `${n} result${n === 1 ? '' : 's'} available`
+})
+
+// Already-added rows use aria-disabled, so they stay focusable but must not
+// add again (a11y #15)
+function onOptionClick(result) {
+  if (result.added) return
+  handleAdd(result)
+}
 
 function checkOverflow(el) {
   if (!el) return
@@ -340,6 +423,8 @@ function handleAdd(result) {
     customPerms: getPermissionTemplate('Read/display'),
   })
   searchQuery.value = ''
+  // Set after clearing the query, so the results watcher can't overwrite it
+  nextTick(() => { statusMessage.value = `${result.name} added` })
   emit('add', result)
 }
 
@@ -393,15 +478,18 @@ function togglePermission(permId, column) {
 }
 
 function removeRecipient(id) {
+  const gone = recipients.value.find(r => r.id === id)
   recipients.value = recipients.value.filter(r => r.id !== id)
   selectedIds.value = selectedIds.value.filter(sid => sid !== id)
   // No recipients left → drop back to the compact (non-advanced) view
   if (recipients.value.length === 0) advancedMode.value = false
+  if (gone) nextTick(() => { statusMessage.value = `${gone.name} removed` })
 }
 
 // Stable IDs for accessibility
 const uid     = Math.random().toString(36).slice(2, 8)
 const titleId = computed(() => `share-dialog-title-${uid}`)
+const descId  = computed(() => `share-dialog-desc-${uid}`)
 const inputId = computed(() => `share-dialog-search-${uid}`)
 </script>
 
@@ -612,9 +700,11 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   background: #f5f5f5;
 }
 
-/* Already added — shown for context, but not selectable */
+/* Already added — shown for context, but not selectable. Keeps the focus ring
+   while suppressing the hover/focus fill, which would read as selectable (a11y #15). */
 .results-dropdown__option--disabled,
-.results-dropdown__option--disabled:hover {
+.results-dropdown__option--disabled:hover,
+.results-dropdown__option--disabled:focus-visible {
   background: transparent;
   cursor: default;
 }

@@ -2,7 +2,7 @@
 
 **Standard:** WCAG 2.2 (Level AA target)
 **Date:** 10 September 2026
-**Scope:** the **Share** dialog only (Rights shares most components — see [Caveats](#caveats--what-was-not-verified))
+**Scope:** the **Share** and **Rights** dialogs, including the Rights permissions table
 **Reference:** [WCAG 2.2 Quick Reference](https://www.w3.org/WAI/WCAG22/quickref/)
 
 > This is a **starting point**, not a certification. It mixes measured facts with
@@ -29,17 +29,20 @@ and `reset.css`, plus live testing in the browser:
 
 | Severity | Count | Theme |
 | --- | --- | --- |
-| 🔴 High | 5 | Focus management, obscured focus, ARIA combobox |
-| 🟠 Medium | 7 | Status announcements, non-text & placeholder contrast |
-| 🟡 Low | 6 | Redundant alt text, disabled semantics, tooltips, headings |
+| 🔴 High | 8 | Focus management, obscured focus, ARIA combobox, unlabelled table controls |
+| 🟠 Medium | 11 | Status announcements, contrast, table semantics |
+| 🟡 Low | 6 | Redundant alt text, tooltips, headings |
+
+**10 of 25 resolved** — all ten engineering findings from the first pass, applied to
+both dialogs. Findings 19–25 come from the second pass over the Rights permissions table.
 
 ### Who owns it
 
 | Category | Count | Meaning |
 | --- | --- | --- |
-| **Design** | 5 | Needs a design decision; changes what users see |
-| **Design + Eng** | 3 | Needs a design decision *and* code |
-| **Engineering** | 10 | Code only; invisible to sighted users |
+| **Design** | 6 | Needs a design decision; changes what users see |
+| **Design + Eng** | 4 | Needs a design decision *and* code |
+| **Engineering** | 15 | Code only; invisible to sighted users — 10 already fixed |
 
 > **Layout impact: none.** No finding changes layout or geometry. All 5 Design items are
 > colour/token changes (4 of them the *same* `--color-neutral-200` token), and the 3
@@ -192,6 +195,53 @@ The dialog title is an `<h2>`. Minor, and largely moot once the dialog becomes a
 
 ---
 
+## Rights permissions table (second pass)
+
+Audited separately, since it was out of scope first time round. All findings measured.
+
+### 19. Checkboxes have no accessible name — SC 4.1.2, 1.3.1
+`Engineering` · 🔴 High
+
+All **48** Allow/Deny/Delegate controls are `<button>`s with no `aria-label` and no text, so a
+screen reader announces each only as "button" — with no idea which permission or column it belongs to.
+**Action:** name each one, e.g. `aria-label="Allow — Documents - Create"`.
+
+### 20. Checkboxes expose no state — SC 4.1.2
+`Engineering` · 🔴 High
+
+No role and no `aria-checked`/`aria-pressed`, so on/off/partial is invisible to assistive tech.
+**Action:** `role="checkbox"` with `aria-checked="true" | "false" | "mixed"` — `mixed` maps exactly onto the partial state.
+
+### 21. Partial state is conveyed by colour alone — SC 1.4.1
+`Design + Eng` · 🔴 High
+
+Checked (all) and partial (some) render an **identical check icon**, differing only in fill —
+`#052474` vs `#d9d9d9`. Verified the two SVGs are byte-identical.
+**Action:** give the partial state its own shape (a dash, as native indeterminate checkboxes use) alongside the colour.
+
+### 22. Partial checkbox fails non-text contrast — SC 1.4.11
+`Design` · 🟠 Medium
+
+`#d9d9d9` on white = **1.41:1** (needs 3:1) — close to invisible against the white cell.
+
+### 23. No table semantics — SC 1.3.1
+`Engineering` · 🟠 Medium
+
+Built from plain `<div>`s with no `role="table"/"row"/"columnheader"/"cell"`, so table navigation
+does not work and cells are not associated with their headers.
+
+### 24. Sort state is not exposed — SC 4.1.2
+`Engineering` · 🟠 Medium
+
+All 4 sortable headers lack `aria-sort`; the current column and direction are conveyed only by the arrow icon.
+
+### 25. Panel title is not a heading — SC 1.3.1
+`Engineering` · 🟡 Low
+
+"Permissions for …" is a `<p>`, so it cannot be reached by heading navigation.
+
+---
+
 ## Suggested sequencing
 
 1. **Focus & keyboard** (1–5) — biggest real-world impact, and #5 is a hard WCAG 2.2 AA failure.
@@ -208,5 +258,6 @@ The dialog title is an `<h2>`. Minor, and largely moot once the dialog becomes a
 - **SC 1.4.12 Text Spacing untested.** The fixed heights (`.share-item` 54px, inputs 40px) are a
   plausible clipping risk under user spacing overrides — needs the standard bookmarklet check.
 - **SC 2.3.3 Animation from Interactions (AAA)** — no `prefers-reduced-motion` handling; advisory only.
-- **Scope is the Share dialog.** Rights reuses most of the same components, so 1–15 will largely
-  apply there too; its permissions table needs a pass of its own.
+- **Both dialogs are now covered.** The ten engineering fixes were applied to Rights as well,
+  and the permissions table has had its own pass (findings 19–25). The remaining Share findings
+  are shared design tokens, so they cover both dialogs at once.

@@ -7,7 +7,7 @@
  */
 
 export const auditMeta = {
-  scope: 'Share dialog',
+  scope: 'Share + Rights dialogs',
   standard: 'WCAG 2.2 — Level AA target',
   date: '10 September 2026',
   reference: 'https://www.w3.org/WAI/WCAG22/quickref/',
@@ -232,6 +232,78 @@ export const findings = [
     evidence: 'The dialog title is an <h2>; the page has no <h1>.',
     action: 'Largely moot once the dialog becomes a real overlay — revisit then.',
   },
+
+  // ── Rights permissions table (second pass) ──────────────────────────────
+  {
+    id: 'a11y-19',
+    severity: 'high',
+    category: 'engineering',
+    title: 'Permissions table: checkboxes have no accessible name',
+    sc: 'SC 4.1.2, 1.3.1',
+    measured: true,
+    evidence: 'All 48 Allow/Deny/Delegate controls are <button> elements with no aria-label and no text, so a screen reader announces each only as "button" — with no idea which permission or column it belongs to.',
+    action: 'Give each an accessible name combining the permission row and column, e.g. aria-label="Allow — Documents - Create".',
+  },
+  {
+    id: 'a11y-20',
+    severity: 'high',
+    category: 'engineering',
+    title: 'Permissions table: checkboxes expose no state',
+    sc: 'SC 4.1.2',
+    measured: true,
+    evidence: 'The controls carry no role and no aria-checked/aria-pressed, so their on/off/partial state is invisible to assistive tech.',
+    action: 'Use role="checkbox" with aria-checked="true" | "false" | "mixed" — "mixed" maps exactly onto the partial state.',
+  },
+  {
+    id: 'a11y-21',
+    severity: 'high',
+    category: 'both',
+    title: 'Permissions table: partial state is conveyed by colour alone',
+    sc: 'SC 1.4.1 Use of Color',
+    measured: true,
+    evidence: 'Checked (all) and partial (some) render an identical check icon, differing only in fill — #052474 vs #d9d9d9. Verified the two SVGs are byte-identical.',
+    action: 'Give the partial state its own shape (e.g. a dash, as native indeterminate checkboxes use) in addition to the colour, and expose aria-checked="mixed".',
+  },
+  {
+    id: 'a11y-22',
+    severity: 'medium',
+    category: 'design',
+    title: 'Permissions table: partial checkbox fails non-text contrast',
+    sc: 'SC 1.4.11',
+    measured: true,
+    evidence: '#d9d9d9 on white = 1.41:1 (needs 3:1). The partial state is close to invisible against the white cell.',
+    action: 'Darken the partial fill, or give it a bordered treatment that meets 3:1.',
+  },
+  {
+    id: 'a11y-23',
+    severity: 'medium',
+    category: 'engineering',
+    title: 'Permissions table: no table semantics',
+    sc: 'SC 1.3.1',
+    measured: true,
+    evidence: 'The table is built from plain <div>s with no role="table"/"row"/"columnheader"/"cell", so screen-reader table navigation does not work and cells are not associated with their headers.',
+    action: 'Add ARIA table roles (or use a real <table>) so each cell is announced with its row and column.',
+  },
+  {
+    id: 'a11y-24',
+    severity: 'medium',
+    category: 'engineering',
+    title: 'Permissions table: sort state is not exposed',
+    sc: 'SC 4.1.2',
+    measured: true,
+    evidence: 'All 4 sortable column headers lack aria-sort, so the current sort column and direction are conveyed only by the arrow icon.',
+    action: 'Set aria-sort="ascending" | "descending" | "none" on the active column header.',
+  },
+  {
+    id: 'a11y-25',
+    severity: 'low',
+    category: 'engineering',
+    title: 'Permissions panel title is not a heading',
+    sc: 'SC 1.3.1',
+    measured: true,
+    evidence: '"Permissions for …" is a <p>, so it cannot be reached by heading navigation.',
+    action: 'Make it an <h3> under the dialog\'s <h2>.',
+  },
 ]
 
 /** Things this audit could not confirm — they still need a human. */
@@ -239,5 +311,5 @@ export const caveats = [
   'No real screen-reader testing. Findings 6–8, 14 and 15 are inferred from ARIA/DOM patterns, not observed in NVDA, JAWS or VoiceOver.',
   'SC 1.4.12 Text Spacing untested — fixed heights (.share-item 54px, inputs 40px) are a plausible clipping risk under user spacing overrides.',
   'SC 2.3.3 Animation from Interactions (AAA) — no prefers-reduced-motion handling; advisory only.',
-  'Scope is the Share dialog. Rights reuses most components, so 1–15 will largely apply there too; its permissions table needs its own pass.',
+  'The ten engineering fixes have been applied to the Rights dialog too, and its permissions table has now had its own pass (findings 19–25). The remaining Share findings are shared tokens, so they cover both dialogs.',
 ]
