@@ -32,12 +32,22 @@
     <!-- Share dialog (simple) -->
     <main v-if="view === 'share'" class="prototype-stage">
       <ShareDialog
+        v-if="shareOpen"
         item-name="Project Alpha — Q3 Report"
-        @close="handleClose"
-        @cancel="handleCancel"
-        @done="handleDone"
+        @close="closeShare"
+        @cancel="closeShare"
+        @done="closeShare"
         @add="handleAdd"
       />
+      <!-- Trigger so the dialog has a real open/close lifecycle: focus moves in
+           on open and returns here on close (a11y #2) -->
+      <button
+        v-else
+        ref="shareTriggerRef"
+        type="button"
+        class="prototype-trigger"
+        @click="openShare"
+      >Open Share dialog</button>
     </main>
 
     <!-- Rights dialog (advanced) -->
@@ -172,7 +182,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import ShareDialog  from './components/ShareDialog.vue'
 import RightsDialog from './components/RightsDialog.vue'
 import AvatarItem   from './components/AvatarItem.vue'
@@ -215,6 +225,20 @@ const SOURCE_FILES = {
 }
 
 const currentSource = computed(() => SOURCE_FILES[view.value])
+
+// Share dialog open/close — the dialog traps focus, so it needs a real way out
+// and somewhere to return focus to (a11y #1, #2)
+const shareOpen       = ref(true)
+const shareTriggerRef = ref(null)
+
+function openShare() {
+  shareOpen.value = true
+}
+
+function closeShare() {
+  shareOpen.value = false
+  nextTick(() => shareTriggerRef.value?.focus())
+}
 
 function handleClose()      { console.log('Dialog closed') }
 function handleCancel()     { console.log('Cancelled') }
@@ -293,6 +317,27 @@ function handleAdd(result)  { console.log('Added:', result.name) }
   justify-content: center;
   padding: var(--space-8);
   background: var(--color-bg-page);
+}
+
+/* ── Dialog trigger (shown while the dialog is closed) ── */
+.prototype-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-brand-600);
+  color: var(--color-neutral-0);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--transition-default);
+}
+
+.prototype-trigger:hover {
+  background: var(--color-brand-700);
 }
 
 /* ── Component gallery ── */

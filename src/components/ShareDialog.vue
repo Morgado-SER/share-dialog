@@ -1,9 +1,13 @@
 <template>
   <div
+    ref="dialogRef"
     class="share-dialog"
     role="dialog"
     aria-modal="true"
     :aria-labelledby="titleId"
+    :aria-describedby="descId"
+    tabindex="-1"
+    @keydown="onDialogKeydown"
   >
 
     <!-- ── Header ── -->
@@ -21,7 +25,7 @@
           <IconClose />
         </button>
       </div>
-      <p class="share-dialog__subtitle">
+      <p :id="descId" class="share-dialog__subtitle">
         Share this item with people, groups, units, or roles.
       </p>
     </div>
@@ -49,7 +53,6 @@
             :aria-expanded="dropdownOpen"
             @focus="dropdownOpen = searchQuery.length > 0"
             @click="dropdownOpen = searchQuery.length > 0"
-            @keydown.esc="dropdownOpen = false"
           />
 
           <!-- Results dropdown -->
@@ -90,8 +93,13 @@
         </div>
       </div>
 
-      <!-- Suggested recipients — one click adds them, same as a dropdown row -->
-      <div v-if="suggestions.length > 0" class="suggestions">
+      <!-- Suggested recipients — one click adds them, same as a dropdown row.
+           Inert while the dropdown covers them, so focus can't land out of sight (a11y #5) -->
+      <div
+        v-if="suggestions.length > 0"
+        class="suggestions"
+        :inert="dropdownOpen || null"
+      >
         <SuggestionChip
           v-for="s in suggestions"
           :key="s.id"
@@ -106,7 +114,7 @@
         ref="resultsRef"
         class="share-dialog__results"
         aria-live="polite"
-        aria-atomic="true"
+        :inert="dropdownOpen || null"
         @scroll="onResultsScroll"
       >
         <div class="share-dialog__section-header">
@@ -189,6 +197,49 @@ const isScrolled  = ref(false)
 const resultsRef  = ref(null)
 const recipients  = ref([])
 
+// ── Modal focus behaviour (a11y #1, #2, #3) ──
+const dialogRef = ref(null)
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+
+/** Focusable elements inside the dialog, skipping anything inert or hidden. */
+function focusableEls() {
+  if (!dialogRef.value) return []
+  return [...dialogRef.value.querySelectorAll(FOCUSABLE)].filter(
+    el => !el.closest('[inert]') && el.offsetParent !== null
+  )
+}
+
+function onDialogKeydown(e) {
+  // Escape closes the dropdown first, then the dialog
+  if (e.key === 'Escape') {
+    if (dropdownOpen.value) dropdownOpen.value = false
+    else emit('close')
+    return
+  }
+
+  // Keep Tab inside the dialog
+  if (e.key !== 'Tab') return
+  const els = focusableEls()
+  if (els.length === 0) return
+
+  const first = els[0]
+  const last  = els[els.length - 1]
+
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault()
+    last.focus()
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault()
+    first.focus()
+  }
+}
+
+// Move focus into the dialog on open, so its name and description are announced
+onMounted(() => {
+  nextTick(() => dialogRef.value?.focus())
+})
+
 // ── Results dropdown ──
 const dropdownOpen  = ref(false)
 const searchWrapRef = ref(null)
@@ -253,6 +304,7 @@ function removeRecipient(id) {
 // Stable IDs for accessibility
 const uid     = Math.random().toString(36).slice(2, 8)
 const titleId = computed(() => `share-dialog-title-${uid}`)
+const descId  = computed(() => `share-dialog-desc-${uid}`)
 const inputId = computed(() => `share-dialog-search-${uid}`)
 </script>
 

@@ -1,9 +1,11 @@
 <template>
   <div class="avatar-item" :class="`avatar-item--${type.toLowerCase()}`">
+    <!-- Decorative: the recipient's name is always rendered next to the avatar,
+         so an alt here would just be announced twice (a11y #14) -->
     <img
       v-if="type === 'Avatar'"
       :src="src"
-      :alt="name"
+      alt=""
       class="avatar-item__photo"
     />
     <IconUserFull  v-else-if="type === 'User'"  class="avatar-item__icon" />
