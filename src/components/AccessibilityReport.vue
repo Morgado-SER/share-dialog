@@ -15,11 +15,11 @@
         <div class="a11y__progress-head">
           <span class="a11y__progress-count">{{ doneCount }} / {{ findings.length }} done</span>
           <button
-            v-if="doneCount > 0"
+            v-if="done.length > 0"
             type="button"
             class="a11y__reset"
             @click="resetAll"
-          >Reset</button>
+          >Clear my ticks</button>
         </div>
         <div
           class="a11y__bar"
@@ -122,6 +122,8 @@
             <input
               type="checkbox"
               :checked="isDone(f.id)"
+              :disabled="f.resolved"
+              :aria-label="f.resolved ? `${f.title} — fixed in code` : f.title"
               @change="toggle(f.id)"
             />
             <span class="a11y__check-box" aria-hidden="true">
@@ -135,6 +137,7 @@
             <p class="a11y__item-title">{{ f.title }}</p>
 
             <div class="a11y__badges">
+              <span v-if="f.resolved" class="a11y__fixed">✓ Fixed in code</span>
               <span class="a11y__cat" :class="`a11y__cat--${f.category}`">
                 {{ categoryLabel[f.category] }}
               </span>
@@ -212,10 +215,16 @@ watch(done, val => {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(val)) } catch { /* ignore */ }
 }, { deep: true })
 
-const isDone = id => done.value.includes(id)
+// Done = fixed in code (shared with everyone, from the data) OR ticked by this
+// person (local only). Resolved items can't be un-ticked.
+const isDone = id => {
+  const f = findings.find(x => x.id === id)
+  return !!f?.resolved || done.value.includes(id)
+}
 
 function toggle(id) {
-  done.value = isDone(id)
+  if (findings.find(x => x.id === id)?.resolved) return
+  done.value = done.value.includes(id)
     ? done.value.filter(x => x !== id)
     : [...done.value, id]
 }
@@ -537,6 +546,16 @@ const visibleTotal = computed(() =>
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   white-space: nowrap;
+}
+
+.a11y__fixed {
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  background: #e7f4ec;
+  color: #1a7a3c;
 }
 
 .a11y__cat { font-weight: var(--weight-semibold); }

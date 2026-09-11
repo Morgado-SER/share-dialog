@@ -10,6 +10,10 @@
     @keydown="onDialogKeydown"
   >
 
+    <!-- Status region — permanently in the DOM so changes are announced.
+         Carries result counts and add/remove confirmations (a11y #6, #8) -->
+    <p class="sr-only" role="status" aria-live="polite">{{ statusMessage }}</p>
+
     <!-- ── Header ── -->
     <div class="share-dialog__header">
       <div class="share-dialog__header-inner">
@@ -60,7 +64,6 @@
             v-if="dropdownOpen"
             class="results-dropdown"
             role="listbox"
-            aria-live="polite"
           >
             <button
               v-for="result in searchResults"
@@ -113,7 +116,6 @@
         v-if="recipients.length > 0"
         ref="resultsRef"
         class="share-dialog__results"
-        aria-live="polite"
         :inert="dropdownOpen || null"
         @scroll="onResultsScroll"
       >
@@ -256,6 +258,12 @@ function onDocumentClick(e) {
 onMounted(()       => document.addEventListener('click', onDocumentClick))
 onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick))
 
+// ── Status announcements (a11y #6, #8) ──
+// Announced through the permanently-rendered .sr-only region above, so screen
+// readers pick up the change. Result counts come from the watcher below;
+// add/remove confirmations are set directly by their handlers.
+const statusMessage = ref('')
+
 // Suggested recipients, minus anyone already added
 const suggestions = computed(() =>
   getSuggestions().filter(s => !recipients.value.some(r => r.id === s.id))
@@ -272,6 +280,15 @@ const searchResults = computed(() => {
       permission: existing ? existing.permission : 'Read/display',
     }
   })
+})
+
+// Announce how many results the current query found (a11y #6)
+watch([searchResults, dropdownOpen], () => {
+  if (!dropdownOpen.value) return
+  const n = searchResults.value.length
+  statusMessage.value = n === 0
+    ? `No results for ${searchQuery.value}`
+    : `${n} result${n === 1 ? '' : 's'} available`
 })
 
 function checkOverflow(el) {
@@ -294,11 +311,15 @@ function handleAdd(result) {
     permission: 'Read/display',
   })
   searchQuery.value = ''
+  // Set after clearing the query, so the results watcher can't overwrite it
+  nextTick(() => { statusMessage.value = `${result.name} added` })
   emit('add', result)
 }
 
 function removeRecipient(id) {
+  const gone = recipients.value.find(r => r.id === id)
   recipients.value = recipients.value.filter(r => r.id !== id)
+  if (gone) nextTick(() => { statusMessage.value = `${gone.name} removed` })
 }
 
 // Stable IDs for accessibility

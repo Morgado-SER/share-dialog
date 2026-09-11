@@ -41,6 +41,7 @@ export const findings = [
   {
     id: 'a11y-1',
     severity: 'high',
+    resolved: true,
     category: 'engineering',
     title: 'No focus trap, despite aria-modal="true"',
     sc: 'SC 2.4.3, 4.1.2',
@@ -51,6 +52,7 @@ export const findings = [
   {
     id: 'a11y-2',
     severity: 'high',
+    resolved: true,
     category: 'engineering',
     title: 'No focus management on open/close',
     sc: 'SC 2.4.3',
@@ -61,6 +63,7 @@ export const findings = [
   {
     id: 'a11y-3',
     severity: 'high',
+    resolved: true,
     category: 'engineering',
     title: 'Escape does not close the dialog',
     sc: 'ARIA APG — modal dialog',
@@ -81,6 +84,7 @@ export const findings = [
   {
     id: 'a11y-5',
     severity: 'high',
+    resolved: true,
     category: 'engineering',
     title: 'Focus obscured by the open dropdown',
     sc: 'SC 2.4.11 (new in 2.2)',
@@ -93,6 +97,7 @@ export const findings = [
   {
     id: 'a11y-6',
     severity: 'medium',
+    resolved: true,
     category: 'engineering',
     title: 'Search results are probably never announced',
     sc: 'SC 4.1.3 Status Messages',
@@ -103,6 +108,7 @@ export const findings = [
   {
     id: 'a11y-7',
     severity: 'medium',
+    resolved: true,
     category: 'engineering',
     title: 'Shared-with list re-announces wholesale',
     sc: 'SC 4.1.3',
@@ -113,6 +119,7 @@ export const findings = [
   {
     id: 'a11y-8',
     severity: 'medium',
+    resolved: true,
     category: 'engineering',
     title: 'No confirmation when a recipient is added or removed',
     sc: 'SC 4.1.3',
@@ -175,6 +182,7 @@ export const findings = [
   {
     id: 'a11y-14',
     severity: 'low',
+    resolved: true,
     category: 'engineering',
     title: 'Avatar alt duplicates the visible name',
     sc: 'SC 1.1.1',
