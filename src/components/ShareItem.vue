@@ -57,7 +57,12 @@
         ref="permBtnRef"
         type="button"
         class="share-item__btn share-item__btn--permission"
-        @click.stop="openDropdown"
+        aria-haspopup="menu"
+        :aria-expanded="showDropdown"
+        :aria-controls="showDropdown ? menuId : null"
+        :aria-label="`Permission for ${name} — ${permission}`"
+        @click.stop="toggleDropdown"
+        @keydown="onTriggerKeydown"
       >
         <span>{{ permission }}</span>
         <IconChevronDown />
@@ -120,9 +125,14 @@
   <Teleport to="body">
     <div
       v-if="showDropdown"
+      :id="menuId"
+      ref="menuRef"
       class="perm-dropdown"
       :style="dropdownStyle"
+      role="menu"
+      :aria-label="`Permission for ${name}`"
       @click.stop
+      @keydown="onMenuKeydown"
     >
       <!-- Permission options -->
       <div class="perm-dropdown__options">
@@ -132,6 +142,9 @@
           type="button"
           class="perm-dropdown__option"
           :class="{ 'perm-dropdown__option--active': perm === permission }"
+          role="menuitemradio"
+          :aria-checked="perm === permission"
+          tabindex="-1"
           @click="selectPermission(perm)"
         >
           <span class="perm-dropdown__option-label">{{ perm }}</span>
@@ -147,6 +160,8 @@
           <button
             type="button"
             class="perm-dropdown__remove"
+            role="menuitem"
+            tabindex="-1"
             @click="removeRecipient"
           >
             Remove
@@ -242,12 +257,33 @@ function onDeleteHover(e) {
   deleteTip.show(e.currentTarget)
 }
 
-// ── Dropdown ──
+// ── Permission menu ──
+// ARIA APG menu button. The popup mixes permission choices with a Remove
+// action, so it is a menu rather than a listbox: the permissions are
+// menuitemradio, Remove is a plain menuitem, and focus moves into the menu.
 const showDropdown  = ref(false)
 const dropdownStyle = ref({})
 const permBtnRef    = ref(null)
+const menuRef       = ref(null)
 
-function openDropdown() {
+const uid    = Math.random().toString(36).slice(2, 8)
+const menuId = `perm-menu-${uid}`
+
+/** Every item in the menu, in visual order — permissions then Remove */
+const menuItems = () =>
+  menuRef.value ? [...menuRef.value.querySelectorAll('[role^="menuitem"]')] : []
+
+/** Move focus by index, wrapping at both ends */
+function focusItem(i) {
+  const items = menuItems()
+  if (items.length === 0) return
+  items[(i + items.length) % items.length].focus()
+}
+
+/**
+ * @param {'checked'|'first'|'last'} start which item takes focus on open
+ */
+function openDropdown(start = 'checked') {
   const rect = permBtnRef.value.getBoundingClientRect()
   dropdownStyle.value = {
     top:   `${rect.bottom + 4}px`,
@@ -255,23 +291,79 @@ function openDropdown() {
   }
   showDropdown.value = true
   nextTick(() => {
-    document.addEventListener('click', closeDropdown, { once: true })
+    document.addEventListener('click', closeOnOutsideClick, { once: true })
+    if (start === 'last')  return focusItem(-1)
+    if (start === 'first') return focusItem(0)
+    const i = props.permissionOptions.indexOf(props.permission)
+    focusItem(i === -1 ? 0 : i)
   })
 }
 
-function closeDropdown() {
+function closeDropdown({ returnFocus = false } = {}) {
   showDropdown.value = false
+  document.removeEventListener('click', closeOnOutsideClick)
+  // Focus must not be left on an element that is about to be removed
+  if (returnFocus) nextTick(() => permBtnRef.value?.focus())
+}
+
+function closeOnOutsideClick() {
+  closeDropdown()
+}
+
+function toggleDropdown() {
+  if (showDropdown.value) closeDropdown()
+  else openDropdown()
+}
+
+function onTriggerKeydown(e) {
+  if (!['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) return
+  // Suppress the native button activation, so Enter/Space don't also click
+  e.preventDefault()
+  if (showDropdown.value) focusItem(e.key === 'ArrowUp' ? -1 : 0)
+  else openDropdown(e.key === 'ArrowUp' ? 'last' : 'checked')
+}
+
+function onMenuKeydown(e) {
+  const items = menuItems()
+  const i     = items.indexOf(document.activeElement)
+
+  switch (e.key) {
+    case 'ArrowDown': e.preventDefault(); focusItem(i + 1); break
+    case 'ArrowUp':   e.preventDefault(); focusItem(i - 1); break
+    case 'Home':      e.preventDefault(); focusItem(0); break
+    case 'End':       e.preventDefault(); focusItem(-1); break
+    case 'Escape':
+      e.preventDefault()
+      // Don't let the dialog's Escape handler close the dialog as well
+      e.stopPropagation()
+      closeDropdown({ returnFocus: true })
+      break
+    case 'Tab':
+      // Let Tab carry on from the trigger, as if the menu had never opened
+      closeDropdown({ returnFocus: true })
+      break
+    case 'Enter':
+    case ' ':
+      // Handled explicitly rather than left to the button's native activation,
+      // so Space cannot scroll the page and the item fires exactly once
+      e.preventDefault()
+      items[i]?.click()
+      break
+  }
 }
 
 function selectPermission(perm) {
   emit('update:permission', perm)
-  closeDropdown()
+  closeDropdown({ returnFocus: true })
 }
 
 function removeRecipient() {
-  emit('remove')
+  // The row is about to disappear, so there is no trigger to return focus to
   closeDropdown()
+  emit('remove')
 }
+
+onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick))
 </script>
 
 <style scoped>
@@ -502,6 +594,22 @@ function removeRecipient() {
 
 .perm-dropdown__option--active:hover {
   background: #eaecf3;
+}
+
+/* Keyboard focus inside the menu. The ring is inset so it cannot clip against
+   the menu's rounded edge or its scroll bounds. */
+.perm-dropdown__option:focus-visible,
+.perm-dropdown__remove:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: -2px;
+}
+
+.perm-dropdown__option:focus-visible {
+  background: #f0f0f0;
+}
+
+.perm-dropdown__remove:focus-visible {
+  background: #fef2f0;
 }
 
 .perm-dropdown__option-label {

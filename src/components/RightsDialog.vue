@@ -48,6 +48,7 @@
           <div ref="searchWrapRef" class="search-anchor">
             <input
               :id="inputId"
+              ref="searchInputRef"
               v-model="searchQuery"
               type="text"
               class="share-dialog__input"
@@ -321,6 +322,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onDialogKeydown))
 // ── Results dropdown ──
 const dropdownOpen  = ref(false)
 const searchWrapRef = ref(null)
+const searchInputRef = ref(null)
 
 // Typing opens the dropdown; clearing the query closes it
 watch(searchQuery, q => { dropdownOpen.value = q.length > 0 })
@@ -495,6 +497,10 @@ function removeRecipient(id) {
   // No recipients left → drop back to the compact (non-advanced) view
   if (recipients.value.length === 0) advancedMode.value = false
   if (gone) nextTick(() => { statusMessage.value = `${gone.name} removed` })
+  // The control that triggered this (trash icon or menu item) has just been
+  // destroyed along with the row, so focus would fall to <body>, outside the
+  // dialog. Put it back on the search input (SC 2.4.3).
+  nextTick(() => searchInputRef.value?.focus())
 }
 
 // Stable IDs for accessibility
