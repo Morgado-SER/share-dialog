@@ -39,8 +39,11 @@
           <span
             ref="subRef"
             class="share-item__sub"
+            :tabindex="subTextTabIndex"
             @mouseenter="onSubHover"
-            @mouseleave="tooltipVisible = false"
+            @mouseleave="subTip.hide()"
+            @focus="onSubHover"
+            @blur="subTip.hideNow()"
           >{{ subText }}</span>
         </div>
       </div>
@@ -69,7 +72,9 @@
         aria-label="Remove"
         @click.stop="emit('remove')"
         @mouseenter="onDeleteHover"
-        @mouseleave="deleteTipVisible = false"
+        @mouseleave="deleteTip.hide()"
+        @focus="onDeleteHover"
+        @blur="deleteTip.hideNow()"
       >
         <IconTrash />
       </button>
@@ -92,18 +97,22 @@
   <!-- Sub-text tooltip — only shown when text is truncated -->
   <Teleport to="body">
     <div
-      v-if="tooltipVisible"
+      v-if="subTip.visible.value"
       class="share-tooltip"
-      :style="tooltipStyle"
+      :style="subTip.style.value"
+      @mouseenter="subTip.cancelHide()"
+      @mouseleave="subTip.hide()"
     >{{ subText }}</div>
   </Teleport>
 
   <!-- Delete button tooltip -->
   <Teleport to="body">
     <div
-      v-if="deleteTipVisible"
+      v-if="deleteTip.visible.value"
       class="share-tooltip"
-      :style="deleteTipStyle"
+      :style="deleteTip.style.value"
+      @mouseenter="deleteTip.cancelHide()"
+      @mouseleave="deleteTip.hide()"
     >Remove</div>
   </Teleport>
 
@@ -149,14 +158,14 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import AvatarItem      from './AvatarItem.vue'
 import IconChevronDown from './icons/IconChevronDown.vue'
 import IconCheck       from './icons/IconCheck.vue'
 import IconTrash       from './icons/IconTrash.vue'
+import { useTooltip }  from '../composables/useTooltip.js'
 
-
-defineProps({
+const props = defineProps({
   type: {
     type: String,
     default: 'Secondary',
@@ -175,6 +184,12 @@ defineProps({
   hideAction: { type: Boolean, default: false },
   name:       { type: String,  default: 'Name' },
   subText:    { type: String,  default: '' },
+  /**
+   * Whether a truncated sub-text may take focus so a keyboard user can reveal
+   * it (a11y #17). Pass false inside a listbox option, which must not contain
+   * focusable descendants.
+   */
+  subTextFocusable: { type: Boolean, default: true },
   tag:        { type: String,  default: null },
   permission: { type: String,  default: 'Read/display' },
   avatarType: { type: String,  default: 'User' },
@@ -183,33 +198,48 @@ defineProps({
 
 const emit = defineEmits(['select', 'add', 'update:permission', 'remove'])
 
-// ── Sub-text truncation tooltip ──
-const subRef        = ref(null)
-const tooltipVisible = ref(false)
-const tooltipStyle  = ref({})
+// ── Sub-text truncation tooltip (a11y #17) ──
+// Shown on hover and on keyboard focus; see useTooltip for the SC 1.4.13 rules
+const subRef = ref(null)
+const subTip = useTooltip()
 
-function onSubHover() {
+const isTruncated = () => {
   const el = subRef.value
-  if (!el || el.scrollWidth <= el.clientWidth) return
-  const rect = el.getBoundingClientRect()
-  tooltipStyle.value = {
-    left: `${rect.left + rect.width / 2}px`,
-    top:  `${rect.top - 8}px`,
-  }
-  tooltipVisible.value = true
+  return !!el && el.scrollWidth > el.clientWidth
 }
 
-// ── Delete button tooltip ──
-const deleteTipVisible = ref(false)
-const deleteTipStyle   = ref({})
+function onSubHover() {
+  if (isTruncated()) subTip.show(subRef.value)
+}
+
+/**
+ * Only a truncated value is worth focusing, and only outside a listbox option —
+ * an option must not contain its own tab stops. Recomputed whenever the text or
+ * the layout changes, since truncation depends on the rendered width.
+ */
+const subTextTabIndex = ref(undefined)
+
+function refreshSubTextTabIndex() {
+  subTextTabIndex.value = props.subTextFocusable && isTruncated() ? 0 : undefined
+}
+
+let resizeObserver = null
+
+onMounted(() => {
+  nextTick(refreshSubTextTabIndex)
+  if (typeof ResizeObserver !== 'undefined' && subRef.value) {
+    resizeObserver = new ResizeObserver(refreshSubTextTabIndex)
+    resizeObserver.observe(subRef.value)
+  }
+})
+onBeforeUnmount(() => resizeObserver?.disconnect())
+watch(() => props.subText, () => nextTick(refreshSubTextTabIndex))
+
+// ── Delete button tooltip (a11y #16) ──
+const deleteTip = useTooltip()
 
 function onDeleteHover(e) {
-  const rect = e.currentTarget.getBoundingClientRect()
-  deleteTipStyle.value = {
-    left: `${rect.left + rect.width / 2}px`,
-    top:  `${rect.top - 8}px`,
-  }
-  deleteTipVisible.value = true
+  deleteTip.show(e.currentTarget)
 }
 
 // ── Dropdown ──
@@ -484,24 +514,6 @@ function removeRecipient() {
   height: 24px;
   flex-shrink: 0;
   color: #052474;
-}
-
-/* ── Sub-text truncation tooltip ── */
-.share-tooltip {
-  position: fixed;
-  z-index: 300;
-  transform: translate(-50%, -100%);
-  background: #212121;
-  color: #ffffff;
-  font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.4;
-  padding: 4px 8px;
-  border-radius: 4px;
-  white-space: nowrap;
-  pointer-events: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
 }
 
 /* ── Divider ── */

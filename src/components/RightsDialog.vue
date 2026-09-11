@@ -100,6 +100,7 @@
                   :added="result.added"
                   :permission-control="false"
                   :hide-action="!result.added"
+                  :sub-text-focusable="false"
                 />
               </button>
 
@@ -194,7 +195,9 @@
         :aria-disabled="advancedDisabled"
         @click="handleAdvancedOptions"
         @mouseenter="onAdvHover"
-        @mouseleave="advTooltipVisible = false"
+        @mouseleave="advTip.hide()"
+        @focus="onAdvHover"
+        @blur="advTip.hideNow()"
       >
         {{ advancedMode ? 'Hide advanced options' : 'Show advanced options' }}
       </button>
@@ -220,9 +223,11 @@
     <!-- Tooltip for the disabled "Advanced options" link -->
     <Teleport to="body">
       <div
-        v-if="advTooltipVisible"
+        v-if="advTip.visible.value"
         class="adv-tooltip"
-        :style="advTooltipStyle"
+        :style="advTip.style.value"
+        @mouseenter="advTip.cancelHide()"
+        @mouseleave="advTip.hide()"
       >
         Please add recipients to get access to advanced options
       </div>
@@ -238,6 +243,7 @@ import IconUser         from './icons/IconUser.vue'
 import ShareItem        from './ShareItem.vue'
 import SuggestionChip   from './SuggestionChip.vue'
 import PermissionsPanel from './PermissionsPanel.vue'
+import { useTooltip }   from '../composables/useTooltip.js'
 import { searchMockData, getSuggestions } from '../data/mockSearchData.js'
 import { getPermissionTemplate } from '../data/mockPermissions.js'
 
@@ -361,18 +367,13 @@ const combinedPermissions = computed(() => {
 // Advanced options is unavailable until there is at least one recipient
 const advancedDisabled = computed(() => recipients.value.length === 0)
 
-// Tooltip shown when hovering the disabled "Advanced options" link
-const advTooltipVisible = ref(false)
-const advTooltipStyle   = ref({})
+// Explains why the "Advanced options" link is disabled. Shown on hover and on
+// keyboard focus — the link is aria-disabled, so it stays focusable (a11y #16)
+const advTip = useTooltip()
 
 function onAdvHover(e) {
   if (!advancedDisabled.value) return
-  const rect = e.currentTarget.getBoundingClientRect()
-  advTooltipStyle.value = {
-    left: `${rect.left}px`,
-    top:  `${rect.top - 8}px`,
-  }
-  advTooltipVisible.value = true
+  advTip.show(e.currentTarget, undefined, 'left')
 }
 
 // ── Status announcements (a11y #6, #8) ──
@@ -1002,7 +1003,6 @@ function onComboKeydown(e) {
   line-height: 1.4;
   padding: 6px 8px;
   border-radius: 4px;
-  pointer-events: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
 }
 </style>

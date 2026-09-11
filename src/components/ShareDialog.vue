@@ -96,6 +96,7 @@
                 :added="result.added"
                 :permission-control="false"
                 :hide-action="!result.added"
+                :sub-text-focusable="false"
               />
             </button>
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="permissions-panel">
+  <div ref="panelRef" class="permissions-panel">
     <h3 :id="titleId" class="permissions-panel__title">
       <template v-if="titleText">Permissions for <strong>"{{ titleText }}"</strong></template>
       <template v-else>Permissions</template>
@@ -30,13 +30,17 @@
           v-for="perm in sortedPermissions"
           :key="perm.id"
           class="perm-table__row"
+          :data-perm-id="perm.id"
           role="row"
         >
           <div class="perm-table__cell perm-table__cell--name" role="cell">
             <span
               class="perm-table__label"
+              :tabindex="labelTabIndex(perm.id)"
               @mouseenter="onLabelHover($event, perm.name)"
-              @mouseleave="tooltipVisible = false"
+              @mouseleave="tip.hide()"
+              @focus="onLabelHover($event, perm.name)"
+              @blur="tip.hideNow()"
             >{{ perm.name }}</span>
           </div>
 
@@ -82,12 +86,19 @@
   </div>
 
   <Teleport to="body">
-    <div v-if="tooltipVisible" class="share-tooltip" :style="tooltipStyle">{{ tooltipText }}</div>
+    <div
+      v-if="tip.visible.value"
+      class="share-tooltip"
+      :style="tip.style.value"
+      @mouseenter="tip.cancelHide()"
+      @mouseleave="tip.hide()"
+    >{{ tip.text.value }}</div>
   </Teleport>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { useTooltip } from '../composables/useTooltip.js'
 import IconSort from './icons/IconSort.vue'
 import IconUser from './icons/IconUser.vue'
 
@@ -97,6 +108,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['toggle'])
+
+const panelRef = ref(null)
 
 // Column definitions drive both the header and the body cells, so their labels
 // and sort keys can't drift apart
@@ -122,21 +135,43 @@ const titleText = computed(() => {
   return `${n} recipients`
 })
 
-const tooltipVisible = ref(false)
-const tooltipStyle   = ref({})
-const tooltipText    = ref('')
+// Truncated permission names reveal on hover *and* on focus (a11y #17)
+const tip = useTooltip()
 
 function onLabelHover(event, text) {
   const el = event.currentTarget
   if (el.scrollWidth <= el.clientWidth) return
-  const rect = el.getBoundingClientRect()
-  tooltipStyle.value = {
-    left: `${rect.left + rect.width / 2}px`,
-    top:  `${rect.top - 8}px`,
-  }
-  tooltipText.value   = text
-  tooltipVisible.value = true
+  tip.show(el, text)
 }
+
+/**
+ * A permission name is only worth focusing when it is actually cut off.
+ * Measured against the rendered cell, and refreshed when the panel resizes.
+ */
+const truncatedIds  = ref([])
+// dataset values are strings, permission ids are numbers — compare as strings
+const labelTabIndex = id => (truncatedIds.value.includes(String(id)) ? 0 : undefined)
+
+function refreshTruncated() {
+  if (!panelRef.value) return
+  truncatedIds.value = [...panelRef.value.querySelectorAll('.perm-table__row')]
+    .flatMap(row => {
+      const el = row.querySelector('.perm-table__label')
+      return el && el.scrollWidth > el.clientWidth ? [row.dataset.permId] : []
+    })
+}
+
+let resizeObserver = null
+
+onMounted(() => {
+  nextTick(refreshTruncated)
+  if (typeof ResizeObserver !== 'undefined' && panelRef.value) {
+    resizeObserver = new ResizeObserver(refreshTruncated)
+    resizeObserver.observe(panelRef.value)
+  }
+})
+onBeforeUnmount(() => resizeObserver?.disconnect())
+watch(() => props.permissions, () => nextTick(refreshTruncated), { deep: true })
 
 const sortCol = ref(null)   // 'name' | 'allow' | 'deny' | 'delegate' | null
 const sortDir = ref('asc')  // 'asc' | 'desc'

@@ -210,6 +210,7 @@ export const findings = [
   {
     id: 'a11y-16',
     severity: 'low',
+    resolved: true,
     category: 'both',
     title: 'Trash tooltip is hover-only',
     sc: 'SC 1.4.13',
@@ -220,6 +221,7 @@ export const findings = [
   {
     id: 'a11y-17',
     severity: 'low',
+    resolved: true,
     category: 'both',
     title: 'Truncated-email tooltip is hover-only',
     sc: 'SC 1.4.13',

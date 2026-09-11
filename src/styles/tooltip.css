@@ -1,0 +1,23 @@
+/**
+ * Tooltips are teleported to <body>, which puts them outside every component's
+ * scoped styles — so the rule has to be global. It used to live inside
+ * ShareItem, which meant PermissionsPanel's teleported tooltip rendered unstyled.
+ *
+ * pointer-events stays enabled: SC 1.4.13 requires the tooltip to be hoverable
+ * (see useTooltip.js).
+ */
+.share-tooltip {
+  position: fixed;
+  z-index: 300;
+  transform: translate(-50%, -100%);
+  background: #212121;
+  color: #ffffff;
+  font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
+}
