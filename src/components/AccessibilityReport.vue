@@ -355,7 +355,7 @@ const visibleTotal = computed(() =>
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  border: 1px solid #dddddd;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-neutral-0);
   font-size: var(--text-sm);

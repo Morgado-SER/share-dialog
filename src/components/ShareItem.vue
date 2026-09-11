@@ -272,7 +272,7 @@ function removeRecipient() {
   justify-content: center;
   width: 16px;
   height: 16px;
-  border: 1px solid #dddddd;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   background: #ffffff;
   flex-shrink: 0;
@@ -425,7 +425,7 @@ function removeRecipient() {
   position: fixed;
   z-index: 200;
   background: #ffffff;
-  border: 1px solid #dddddd;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   /* Figma "Lighter Shadow" */
   box-shadow:

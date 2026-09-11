@@ -29,7 +29,7 @@ const emit = defineEmits(['select'])
   justify-content: center;
   min-width: 24px;
   padding: 6px;
-  border: 1px solid #dddddd;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: transparent;
   cursor: pointer;

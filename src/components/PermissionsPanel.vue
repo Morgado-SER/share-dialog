@@ -201,7 +201,7 @@ const sortedPermissions = computed(() => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  border: 1px solid #dddddd;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -218,7 +218,7 @@ const sortedPermissions = computed(() => {
 }
 
 .perm-table__row--header {
-  border-bottom-color: #dddddd;
+  border-bottom-color: var(--color-border);
   flex-shrink: 0;
 }
 
@@ -342,7 +342,7 @@ const sortedPermissions = computed(() => {
   justify-content: center;
   width: 16px;
   height: 16px;
-  border: 1px solid #dddddd;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   background: #ffffff;
   flex-shrink: 0;

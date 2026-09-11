@@ -130,6 +130,7 @@ export const findings = [
   {
     id: 'a11y-9',
     severity: 'medium',
+    resolved: true,
     category: 'design',
     title: 'Input border fails non-text contrast',
     sc: 'SC 1.4.11',
@@ -140,6 +141,7 @@ export const findings = [
   {
     id: 'a11y-10',
     severity: 'medium',
+    resolved: true,
     category: 'design',
     title: 'Suggestion chip border fails non-text contrast',
     sc: 'SC 1.4.11',
@@ -150,6 +152,7 @@ export const findings = [
   {
     id: 'a11y-11',
     severity: 'medium',
+    resolved: true,
     category: 'design',
     title: 'Dropdown border fails non-text contrast',
     sc: 'SC 1.4.11',
@@ -160,6 +163,7 @@ export const findings = [
   {
     id: 'a11y-12',
     severity: 'medium',
+    resolved: true,
     category: 'design',
     title: 'Placeholder text fails contrast',
     sc: 'SC 1.4.3',
@@ -172,6 +176,7 @@ export const findings = [
   {
     id: 'a11y-13',
     severity: 'low',
+    resolved: true,
     category: 'design',
     title: '"No results for…" fails contrast',
     sc: 'SC 1.4.3',

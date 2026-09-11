@@ -21,9 +21,9 @@
   --color-neutral-0:   #ffffff;
   --color-neutral-50:  #f8f8f8;
   --color-neutral-100: #f0f0f0;
-  --color-neutral-200: #dddddd; /* Grayscale/Light Gray */
+  --color-neutral-200: #939393; /* Border grey — 3.07:1 on white, meets SC 1.4.11 */
   --color-neutral-300: #c0c0c0;
-  --color-neutral-400: #939393; /* Grayscale/Gray */
+  --color-neutral-400: #666666; /* Muted text — 5.74:1 on white, meets SC 1.4.3 */
   --color-neutral-500: #555555; /* Grayscale/Dark Gray */
   --color-neutral-600: #3a3a3a;
   --color-neutral-700: #212121; /* Grayscale/Darkest Gray */
