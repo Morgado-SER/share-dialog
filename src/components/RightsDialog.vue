@@ -57,26 +57,36 @@
               role="combobox"
               aria-autocomplete="list"
               :aria-expanded="dropdownOpen"
+              :aria-controls="listboxId"
+              :aria-activedescendant="activeOptionId"
               @focus="dropdownOpen = searchQuery.length > 0"
               @click="dropdownOpen = searchQuery.length > 0"
+              @keydown="onComboKeydown"
             />
 
             <!-- Results dropdown — click a row to add; already-added people
                  are shown for context with an "Already added" label -->
             <div
               v-if="dropdownOpen"
+              :id="listboxId"
               class="results-dropdown"
               role="listbox"
-              aria-live="polite"
+              aria-label="Search results"
+              tabindex="-1"
             >
               <button
-                v-for="result in searchResults"
+                v-for="(result, i) in searchResults"
                 :key="result.id"
+                :id="optionId(i)"
                 type="button"
+                tabindex="-1"
                 class="results-dropdown__option"
-                :class="{ 'results-dropdown__option--disabled': result.added }"
+                :class="{
+                  'results-dropdown__option--disabled': result.added,
+                  'results-dropdown__option--active': i === activeIndex,
+                }"
                 role="option"
-                :aria-selected="false"
+                :aria-selected="i === activeIndex"
                 :aria-disabled="result.added || null"
                 @click="onOptionClick(result)"
               >
@@ -263,7 +273,7 @@ function focusableEls() {
   const roots = [dialogRef.value, ...document.querySelectorAll('.perm-dropdown')]
   return roots.flatMap(root =>
     [...root.querySelectorAll(FOCUSABLE)].filter(
-      el => !el.closest('[inert]') && el.offsetParent !== null
+      el => !el.closest('[inert]') && el.offsetParent !== null && el.tabIndex >= 0
     )
   )
 }
@@ -491,6 +501,55 @@ const uid     = Math.random().toString(36).slice(2, 8)
 const titleId = computed(() => `share-dialog-title-${uid}`)
 const descId  = computed(() => `share-dialog-desc-${uid}`)
 const inputId = computed(() => `share-dialog-search-${uid}`)
+
+// ── Combobox keyboard pattern (a11y #4) ──
+// ARIA APG "editable combobox with listbox popup": focus never leaves the
+// input. ↑/↓ move an *active* option, which the input points at with
+// aria-activedescendant; Enter selects it. The options are therefore taken out
+// of the tab order — Tab moves past the whole combobox, as expected.
+const activeIndex = ref(-1)
+
+const listboxId      = computed(() => `${uid}-listbox`)
+const optionId       = i => `${uid}-option-${i}`
+const activeOptionId = computed(() =>
+  dropdownOpen.value && activeIndex.value >= 0 ? optionId(activeIndex.value) : null
+)
+
+// A new query, or a closed dropdown, clears the active option
+watch([searchResults, dropdownOpen], () => { activeIndex.value = -1 })
+
+function moveActive(delta) {
+  const n = searchResults.value.length
+  if (n === 0) return
+  activeIndex.value =
+    activeIndex.value === -1
+      ? (delta > 0 ? 0 : n - 1)
+      : (activeIndex.value + delta + n) % n
+  // Keep the active option inside the scrollable dropdown
+  nextTick(() => {
+    document.getElementById(optionId(activeIndex.value))
+      ?.scrollIntoView({ block: 'nearest' })
+  })
+}
+
+function onComboKeydown(e) {
+  // Home/End are left alone — in an editable combobox they move the caret
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault()
+    if (!dropdownOpen.value) {
+      if (searchQuery.value.length === 0) return
+      dropdownOpen.value = true
+      nextTick(() => moveActive(e.key === 'ArrowDown' ? 1 : -1))
+      return
+    }
+    moveActive(e.key === 'ArrowDown' ? 1 : -1)
+  } else if (e.key === 'Enter' && activeIndex.value >= 0) {
+    e.preventDefault()
+    const result = searchResults.value[activeIndex.value]
+    if (result) onOptionClick(result)
+  }
+  // Escape is handled by the dialog-level handler (dropdown first, then dialog)
+}
 </script>
 
 <style scoped>
@@ -707,6 +766,21 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
 .results-dropdown__option--disabled:focus-visible {
   background: transparent;
   cursor: default;
+}
+
+/* Keyboard-active option. Focus stays in the input (APG combobox), so the
+   option carries its own indicator — the same 2px ring used everywhere else,
+   inset so it can't clip against the dropdown's scroll edges (a11y #4). */
+.results-dropdown__option--active {
+  background: #f5f5f5;
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: -2px;
+}
+
+/* Already-added rows keep the ring but not the fill, which would read as
+   selectable (a11y #15) */
+.results-dropdown__option--disabled.results-dropdown__option--active {
+  background: transparent;
 }
 
 .results-dropdown__empty {

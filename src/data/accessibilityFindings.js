@@ -74,6 +74,7 @@ export const findings = [
   {
     id: 'a11y-4',
     severity: 'high',
+    resolved: true,
     category: 'both',
     title: 'Combobox is not keyboard-navigable',
     sc: 'SC 2.1.1 (partial), 4.1.2',
