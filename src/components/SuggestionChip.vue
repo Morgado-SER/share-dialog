@@ -23,15 +23,16 @@ const emit = defineEmits(['select'])
 </script>
 
 <style scoped>
+/* The chip is defined by its fill rather than a border — the updated
+   accessible treatment from design. */
 .suggestion-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-width: 24px;
   padding: 6px;
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: transparent;
+  background: #f0f0f0;
   cursor: pointer;
   transition: background var(--transition-default);
 }
@@ -44,7 +45,7 @@ const emit = defineEmits(['select'])
 
 .suggestion-chip__icon {
   flex-shrink: 0;
-  color: #939393;
+  color: var(--color-neutral-500);
 }
 
 .suggestion-chip__label {

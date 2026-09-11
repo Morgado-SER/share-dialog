@@ -147,7 +147,7 @@ export const findings = [
     sc: 'SC 1.4.11',
     measured: true,
     evidence: '#dddddd = 1.36:1 against white (needs 3:1).',
-    action: 'Covered by the same token change as #9.',
+    action: 'Superseded by design: the chip now uses a filled background (#f0f0f0, #e5e5e5 on hover) instead of a border, so its boundary no longer depends on a low-contrast outline.',
   },
   {
     id: 'a11y-11',
