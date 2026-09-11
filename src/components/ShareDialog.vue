@@ -73,8 +73,8 @@
               :class="{ 'results-dropdown__option--disabled': result.added }"
               role="option"
               :aria-selected="false"
-              :disabled="result.added"
-              @click="handleAdd(result)"
+              :aria-disabled="result.added || null"
+              @click="onOptionClick(result)"
             >
               <ShareItem
                 type="Secondary"
@@ -305,6 +305,13 @@ watch([searchResults, recipients], () => {
   nextTick(() => checkOverflow(resultsRef.value))
 })
 
+// Already-added rows use aria-disabled rather than disabled, so they stay
+// focusable and are announced — but they must not add again (a11y #15)
+function onOptionClick(result) {
+  if (result.added) return
+  handleAdd(result)
+}
+
 function handleAdd(result) {
   recipients.value.push({
     ...result,
@@ -504,9 +511,12 @@ const inputId = computed(() => `share-dialog-search-${uid}`)
   background: #f5f5f5;
 }
 
-/* Already added — shown for context, but not selectable */
+/* Already added — shown for context, but not selectable. Keeps the focus ring
+   (it's reachable by keyboard) while suppressing the hover/focus fill, which
+   would otherwise make it read as selectable (a11y #15). */
 .results-dropdown__option--disabled,
-.results-dropdown__option--disabled:hover {
+.results-dropdown__option--disabled:hover,
+.results-dropdown__option--disabled:focus-visible {
   background: transparent;
   cursor: default;
 }

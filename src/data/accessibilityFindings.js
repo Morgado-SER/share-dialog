@@ -193,6 +193,7 @@ export const findings = [
   {
     id: 'a11y-15',
     severity: 'low',
+    resolved: true,
     category: 'engineering',
     title: '"Already added" rows use disabled',
     sc: 'SC 4.1.2',
@@ -223,6 +224,7 @@ export const findings = [
   {
     id: 'a11y-18',
     severity: 'low',
+    resolved: true,
     category: 'engineering',
     title: 'No <h1> on the page',
     sc: 'SC 1.3.1 / 2.4.6',

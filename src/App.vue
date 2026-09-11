@@ -2,7 +2,8 @@
   <div class="prototype-shell">
     <header class="prototype-header">
       <span class="prototype-badge">Prototype</span>
-      <span class="prototype-title">Share Dialog</span>
+      <!-- Top-level page heading, so the document doesn't start at <h2> (a11y #18) -->
+      <h1 class="prototype-title">Share Dialog</h1>
     </header>
 
     <!-- Nav tabs -->
