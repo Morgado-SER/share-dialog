@@ -8,7 +8,7 @@ be rebuilt / wired up in the real WebCube application.
 - **Repo:** https://github.com/Morgado-SER/share-dialog
 - **Stack:** Vue 3 (`<script setup>` SFCs), Vite, plain CSS with design tokens. No state manager, no router, no runtime deps beyond Vue.
 
-> ⚠️ All search results and permissions are **mock data**. See [Integration checklist](#integration-checklist) for what needs a real backend.
+> ⚠️ All search results and permissions are **mock data**. See [Integration checklist](#4-integration-checklist) for what needs a real backend.
 
 ---
 
@@ -78,6 +78,10 @@ Props:
   advanced:  Boolean   // Rights advanced mode → show selection checkbox
   permissionControl: Boolean = true   // false → hide the permission dropdown (Share)
   deletable: Boolean = false          // true → show trash icon on row hover (Share)
+  hideAction: Boolean = false         // suppress the action slot entirely
+  subTextFocusable: Boolean = true    // a11y: a truncated subText may take focus so a keyboard
+                                      // user can reveal it. Pass false inside a role="option",
+                                      // which must not contain focusable descendants.
 
 Events:
   select              // checkbox / row clicked (Rights advanced)
@@ -150,11 +154,60 @@ What must be replaced/wired when building this for real:
 - [ ] **`itemName`** — pass the real object name; the title reads `Rights for <itemName>` / `Share <itemName>`.
 - [ ] **Avatars** — `AvatarItem type="Avatar"` expects a photo URL; the fallback icons cover User/Group/Unit/Role.
 - [ ] **i18n** — all copy is hard-coded English.
-- [ ] **A11y pass** — dialogs use `role="dialog"`/`aria-modal`; still needs focus-trap, `Esc`-to-close, and focus return on close.
+- [ ] **Live-region copy** — the `role="status"` announcements ("3 results available", "X added") are
+      hard-coded English strings built in the dialogs; they need to go through i18n with the rest of the copy.
+- [ ] **Keep the accessibility work** — see [Accessibility](#5-accessibility). It is behaviour, not decoration,
+      and it is easy to lose in a rewrite.
 
 ---
 
-## 5. Design system
+## 5. Accessibility
+
+The prototype was audited against **WCAG 2.2 Level AA** and the findings fixed — 23 of 23.
+Full report: [`Accessibility.md`](Accessibility.md); the interactive checklist is the
+**Accessibility** tab in the prototype.
+
+This is the part most likely to be lost when the dialogs are rebuilt, so it is worth
+reading before you start rather than retrofitting afterwards.
+
+### What is implemented, and where
+
+| Area | Where | What it does |
+| --- | --- | --- |
+| **Modal semantics** | `ShareDialog.vue`, `RightsDialog.vue` | `role="dialog"` + `aria-modal`, `aria-labelledby`/`aria-describedby`, a focus trap, `Esc` to close, focus moved in on open and returned to the trigger on close. |
+| **Combobox** | both dialogs | ARIA APG *editable combobox with listbox popup*. Focus stays in the input; ↑/↓ move the active option via `aria-activedescendant`; Enter selects; options are `tabindex="-1"` so Tab skips the whole list. |
+| **Status announcements** | both dialogs | A permanently-rendered `role="status"` region carries result counts and add/remove confirmations. It must stay in the DOM — rendering it conditionally silences it. |
+| **Obscured focus** | both dialogs | Suggestion chips go `inert` while the dropdown covers them (SC 2.4.11). |
+| **Tooltips** | `composables/useTooltip.js` | SC 1.4.13: shown on focus as well as hover, dismissible with `Esc`, and hoverable via a 150 ms grace period. All four tooltips share it. |
+| **Permissions table** | `PermissionsPanel.vue` | Full `role="table"/"row"/"columnheader"/"cell"` semantics, `aria-sort` on the sortable headers, and `role="checkbox"` with `aria-checked="true" \| "false" \| "mixed"` — `mixed` is exactly the partial state. |
+| **Contrast tokens** | `styles/tokens.css` | `--color-neutral-200: #939393` (borders, 3.07:1) and `--color-neutral-400: #666666` (muted text, 5.74:1). Do not lighten these back. |
+| **Focus ring** | `styles/reset.css` | Global `:focus-visible` — 2px `#1a3572` at 11.69:1, with `:focus:not(:focus-visible)` suppressing mouse rings. |
+| **`.sr-only`** | `styles/reset.css` | Uses `clip-path: inset(50%)`. Never swap it for `display: none`, which silences live regions. |
+
+### Things that will bite you
+
+- **Teleported content escapes the focus trap.** `ShareItem` teleports its permission dropdown to
+  `<body>`, so the dialogs bind their `keydown` handler to `document`, not to the dialog element.
+  Binding it to the dialog looks correct and silently leaks focus to the page behind.
+- **Teleported content also escapes scoped CSS.** `.share-tooltip` lives in the global
+  `styles/tooltip.css` for exactly this reason.
+- **A `role="option"` must not contain its own tab stops.** That is what `ShareItem`'s
+  `subTextFocusable` prop is for — truncated text is focusable in the recipient list, but not
+  inside the dropdown.
+- **A scrollable container is a tab stop in Chrome even without a `tabindex`.** The results
+  listbox carries an explicit `tabindex="-1"` to keep it out of the tab order.
+- **Already-added rows use `aria-disabled`, not `disabled`,** so they stay focusable and are
+  announced — but their click handler returns early.
+
+### Not verified
+
+No real screen-reader testing (NVDA / JAWS / VoiceOver), and **SC 1.4.12 Text Spacing** is
+untested — the fixed heights (`.share-item` 54px, inputs 40px) are a plausible clipping risk
+under user spacing overrides. Both are listed in the report's Caveats.
+
+---
+
+## 6. Design system
 
 - **Tokens:** `src/styles/tokens.css` (colours, spacing, radii, typography, shadows). Prefer these over
   raw hex — a few one-off hex values remain in components where a token didn't exist (e.g. `#e5e5e5`
@@ -162,7 +215,7 @@ What must be replaced/wired when building this for real:
 - **Brand:** WebCube primary `#052474`.
 - **Font:** self-hosted **Figtree** variable font (`src/styles/`), weights 400/500/600/700.
 
-## 6. Figma source
+## 7. Figma source
 
 File: `WebCube NEW Dialogs & Controls` (`MVZoWd5ixOh3dF5QUUEOgU`). Key frames:
 
@@ -178,7 +231,7 @@ File: `WebCube NEW Dialogs & Controls` (`MVZoWd5ixOh3dF5QUUEOgU`). Key frames:
 
 ---
 
-## 7. Known limitations / decisions
+## 8. Known limitations / decisions
 
 - **In-memory only** — nothing persists; reload resets the dialog.
 - **Combine = three-state (all/some/none) + bulk-write** (see [Combine semantics](#combine-semantics)).
@@ -186,6 +239,11 @@ File: `WebCube NEW Dialogs & Controls` (`MVZoWd5ixOh3dF5QUUEOgU`). Key frames:
   hides the dropdown entirely, so it's not reachable there.
 - **`RadioButton.vue`** is no longer used by either dialog (selection moved to checkboxes) but is kept
   in the component set / Components tab.
+- **Partial checkbox contrast is an accepted deviation.** The grey `#d9d9d9` partial fill measures
+  **1.41:1** against the white cell (SC 1.4.11 asks for 3:1), and its white tick the same, so a
+  "some" checkbox can read as an empty one. This was reviewed and deliberately left as-is; the ARIA
+  side is correct either way (`aria-checked="mixed"`), so screen-reader users are unaffected. Revisit
+  it if the dialogs are ever taken through a formal AA conformance claim.
 - **Single-page** — tab switching is local state in `App.vue`; there's no routing.
 
 ## Run locally

@@ -29,24 +29,30 @@ and `reset.css`, plus live testing in the browser:
 
 | Severity | Count | Theme |
 | --- | --- | --- |
-| 🔴 High | 8 | Focus management, obscured focus, ARIA combobox, unlabelled table controls |
-| 🟠 Medium | 11 | Status announcements, contrast, table semantics |
-| 🟡 Low | 6 | Redundant alt text, tooltips, headings |
+| 🔴 High | 7 | Focus management, obscured focus, ARIA combobox, unlabelled table controls |
+| 🟠 Medium | 9 | Status announcements, contrast, table semantics |
+| 🟡 Low | 7 | Redundant alt text, tooltips, headings |
 
-**10 of 25 resolved** — all ten engineering findings from the first pass, applied to
-both dialogs. Findings 19–25 come from the second pass over the Rights permissions table.
+**23 of 23 resolved.** Findings 1–18 come from the first pass over the Share dialog and were
+applied to Rights as well; 19–25 come from the second pass over the Rights permissions table.
+
+Numbering is stable — findings are never renumbered, so **#21 and #22 are absent by design**.
+Both concerned the grey `#d9d9d9` partial checkbox; they were reviewed and taken out of scope
+as a deliberate design decision, recorded under [Known limitations](HANDOVER.md#8-known-limitations--decisions)
+in the handover.
 
 ### Who owns it
 
 | Category | Count | Meaning |
 | --- | --- | --- |
-| **Design** | 6 | Needs a design decision; changes what users see |
-| **Design + Eng** | 4 | Needs a design decision *and* code |
-| **Engineering** | 15 | Code only; invisible to sighted users — 10 already fixed |
+| **Design** | 5 | Needs a design decision; changes what users see |
+| **Design + Eng** | 3 | Needs a design decision *and* code |
+| **Engineering** | 15 | Code only; invisible to sighted users |
 
-> **Layout impact: none.** No finding changes layout or geometry. All 5 Design items are
-> colour/token changes (4 of them the *same* `--color-neutral-200` token), and the 3
-> Design + Eng items are overlay behaviour. Nothing reflows or resizes.
+> **Layout impact: none.** No finding changed layout or geometry. Every Design item was a
+> colour/token change, and the Design + Eng items were overlay and keyboard behaviour.
+> Nothing reflowed or resized — verified by diffing element geometry against the previous
+> build at a fixed viewport.
 >
 > The one potential layout risk — fixed heights vs. **SC 1.4.12 Text Spacing** — is
 > unverified and listed under [Caveats](#caveats--what-was-not-verified).
@@ -211,18 +217,6 @@ screen reader announces each only as "button" — with no idea which permission 
 
 No role and no `aria-checked`/`aria-pressed`, so on/off/partial is invisible to assistive tech.
 **Action:** `role="checkbox"` with `aria-checked="true" | "false" | "mixed"` — `mixed` maps exactly onto the partial state.
-
-### 21. Partial state is conveyed by colour alone — SC 1.4.1
-`Design + Eng` · 🔴 High
-
-Checked (all) and partial (some) render an **identical check icon**, differing only in fill —
-`#052474` vs `#d9d9d9`. Verified the two SVGs are byte-identical.
-**Action:** give the partial state its own shape (a dash, as native indeterminate checkboxes use) alongside the colour.
-
-### 22. Partial checkbox fails non-text contrast — SC 1.4.11
-`Design` · 🟠 Medium
-
-`#d9d9d9` on white = **1.41:1** (needs 3:1) — close to invisible against the white cell.
 
 ### 23. No table semantics — SC 1.3.1
 `Engineering` · 🟠 Medium
