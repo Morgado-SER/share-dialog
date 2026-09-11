@@ -1,86 +1,66 @@
 <template>
   <div class="permissions-panel">
-    <p class="permissions-panel__title">
+    <h3 :id="titleId" class="permissions-panel__title">
       <template v-if="titleText">Permissions for <strong>"{{ titleText }}"</strong></template>
       <template v-else>Permissions</template>
-    </p>
+    </h3>
 
-    <div class="permissions-panel__table">
-      <!-- Header -->
-      <div class="perm-table__row perm-table__row--header">
-        <button type="button" class="perm-table__cell perm-table__cell--name perm-table__sort-btn" @click="toggleSort('name')">
-          <span>Name</span>
-          <IconSort class="perm-table__sort" :direction="sortCol === 'name' ? sortDir : null" />
-        </button>
-        <button type="button" class="perm-table__cell perm-table__cell--action perm-table__sort-btn" @click="toggleSort('allow')">
-          <span>Allow</span>
-          <IconSort class="perm-table__sort" :direction="sortCol === 'allow' ? sortDir : null" />
-        </button>
-        <button type="button" class="perm-table__cell perm-table__cell--action perm-table__sort-btn" @click="toggleSort('deny')">
-          <span>Deny</span>
-          <IconSort class="perm-table__sort" :direction="sortCol === 'deny' ? sortDir : null" />
-        </button>
-        <button type="button" class="perm-table__cell perm-table__cell--action perm-table__sort-btn" @click="toggleSort('delegate')">
-          <span>Delegate</span>
-          <IconSort class="perm-table__sort" :direction="sortCol === 'delegate' ? sortDir : null" />
+    <div class="permissions-panel__table" role="table" :aria-labelledby="titleId">
+      <!-- Header (a11y #23, #24) -->
+      <div class="perm-table__row perm-table__row--header" role="row">
+        <button
+          v-for="col in columns"
+          :key="col.key"
+          :id="`${uid}-col-${col.key}`"
+          type="button"
+          class="perm-table__cell perm-table__sort-btn"
+          :class="col.key === 'name' ? 'perm-table__cell--name' : 'perm-table__cell--action'"
+          role="columnheader"
+          :aria-sort="sortCol === col.key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'"
+          @click="toggleSort(col.key)"
+        >
+          <span>{{ col.label }}</span>
+          <IconSort class="perm-table__sort" :direction="sortCol === col.key ? sortDir : null" />
         </button>
       </div>
 
       <!-- Body -->
-      <div v-if="permissions.length > 0" class="perm-table__body">
+      <div v-if="permissions.length > 0" class="perm-table__body" role="rowgroup">
         <div
           v-for="perm in sortedPermissions"
           :key="perm.id"
           class="perm-table__row"
+          role="row"
         >
-          <div class="perm-table__cell perm-table__cell--name">
+          <div class="perm-table__cell perm-table__cell--name" role="cell">
             <span
               class="perm-table__label"
               @mouseenter="onLabelHover($event, perm.name)"
               @mouseleave="tooltipVisible = false"
             >{{ perm.name }}</span>
           </div>
-          <div class="perm-table__cell perm-table__cell--action">
+
+          <!-- One cell per permission column. Each control is a real checkbox
+               with a name and a three-way state (a11y #19, #20) -->
+          <div
+            v-for="col in actionColumns"
+            :key="col.key"
+            class="perm-table__cell perm-table__cell--action"
+            role="cell"
+          >
             <button
               type="button"
               class="perm-checkbox"
               :class="{
-                'perm-checkbox--checked': perm.allow === 'all',
-                'perm-checkbox--partial': perm.allow === 'some',
+                'perm-checkbox--checked': perm[col.key] === 'all',
+                'perm-checkbox--partial': perm[col.key] === 'some',
               }"
-              @click="emit('toggle', perm.id, 'allow')"
+              role="checkbox"
+              :aria-checked="ariaChecked(perm[col.key])"
+              :aria-label="`${col.label} — ${perm.name}`"
+              @click="emit('toggle', perm.id, col.key)"
             >
-              <svg v-if="perm.allow !== 'none'" width="10" height="8" viewBox="0 0 10 8" fill="none">
-                <path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-          </div>
-          <div class="perm-table__cell perm-table__cell--action">
-            <button
-              type="button"
-              class="perm-checkbox"
-              :class="{
-                'perm-checkbox--checked': perm.deny === 'all',
-                'perm-checkbox--partial': perm.deny === 'some',
-              }"
-              @click="emit('toggle', perm.id, 'deny')"
-            >
-              <svg v-if="perm.deny !== 'none'" width="10" height="8" viewBox="0 0 10 8" fill="none">
-                <path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-          </div>
-          <div class="perm-table__cell perm-table__cell--action">
-            <button
-              type="button"
-              class="perm-checkbox"
-              :class="{
-                'perm-checkbox--checked': perm.delegate === 'all',
-                'perm-checkbox--partial': perm.delegate === 'some',
-              }"
-              @click="emit('toggle', perm.id, 'delegate')"
-            >
-              <svg v-if="perm.delegate !== 'none'" width="10" height="8" viewBox="0 0 10 8" fill="none">
+              <svg v-if="perm[col.key] !== 'none'" width="10" height="8" viewBox="0 0 10 8" fill="none">
                 <path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
@@ -117,6 +97,23 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['toggle'])
+
+// Column definitions drive both the header and the body cells, so their labels
+// and sort keys can't drift apart
+const columns = [
+  { key: 'name',     label: 'Name' },
+  { key: 'allow',    label: 'Allow' },
+  { key: 'deny',     label: 'Deny' },
+  { key: 'delegate', label: 'Delegate' },
+]
+const actionColumns = columns.filter(c => c.key !== 'name')
+
+/** Map the three-way state onto ARIA — 'mixed' is exactly the partial state */
+const ariaChecked = state =>
+  state === 'all' ? 'true' : state === 'some' ? 'mixed' : 'false'
+
+const uid     = Math.random().toString(36).slice(2, 8)
+const titleId = `perm-panel-title-${uid}`
 
 const titleText = computed(() => {
   const n = props.selectedNames.length

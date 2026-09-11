@@ -237,6 +237,7 @@ export const findings = [
   {
     id: 'a11y-19',
     severity: 'high',
+    resolved: true,
     category: 'engineering',
     title: 'Permissions table: checkboxes have no accessible name',
     sc: 'SC 4.1.2, 1.3.1',
@@ -247,6 +248,7 @@ export const findings = [
   {
     id: 'a11y-20',
     severity: 'high',
+    resolved: true,
     category: 'engineering',
     title: 'Permissions table: checkboxes expose no state',
     sc: 'SC 4.1.2',
@@ -277,6 +279,7 @@ export const findings = [
   {
     id: 'a11y-23',
     severity: 'medium',
+    resolved: true,
     category: 'engineering',
     title: 'Permissions table: no table semantics',
     sc: 'SC 1.3.1',
@@ -287,6 +290,7 @@ export const findings = [
   {
     id: 'a11y-24',
     severity: 'medium',
+    resolved: true,
     category: 'engineering',
     title: 'Permissions table: sort state is not exposed',
     sc: 'SC 4.1.2',
@@ -297,6 +301,7 @@ export const findings = [
   {
     id: 'a11y-25',
     severity: 'low',
+    resolved: true,
     category: 'engineering',
     title: 'Permissions panel title is not a heading',
     sc: 'SC 1.3.1',
