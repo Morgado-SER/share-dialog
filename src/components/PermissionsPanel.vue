@@ -201,7 +201,7 @@ const sortedPermissions = computed(() => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--color-border);
+  border: 1px solid #dddddd; /* structural gridline, not a control boundary */
   border-radius: 8px;
   overflow: hidden;
 }
@@ -218,7 +218,7 @@ const sortedPermissions = computed(() => {
 }
 
 .perm-table__row--header {
-  border-bottom-color: var(--color-border);
+  border-bottom-color: #dddddd;
   flex-shrink: 0;
 }
 
